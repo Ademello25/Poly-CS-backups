@@ -1,0 +1,11 @@
+ Iterations      O(1) push    O(1) pop    O(N) push    O(N)pop
+    -------------------------------------------------------------
+  1000              1.85 ms      1.36 ms      6.54 ms      1.51 ms
+  5000              2.68 ms      3.45 ms     115.3 ms      3.73 ms
+ 10000              3.38 ms      4.27 ms     495.8 ms      4.54 ms
+ 50000              8.10 ms      6.59 ms   12870.8 ms      7.04 ms
+    -------------------------------------------------------------
+
+Findings: The main thing that i found was what appears to be a mistake on my part. I failed to make an O(n) implementation for pop, although using a similar method of O(n) as my push method, the StackTime class gave me O(1) results.
+
+Results: There seemed to be a very large jump in amount of time taken to perform push(O(n)) from the 10000 iteration test to the 50000 test, i am not certain what may account for this. Also, something about the pop method made it run a bit quicker than my push method.

@@ -1,0 +1,19 @@
+**********************************
+*    Welcome to Packer! (tm)     *
+* The amazing ball-packing tool! *
+**********************************
+
+Enter the box's exterior dimensions
+     Length (inches):       Width (inches):      Height (inches): 
+Enter the thickness and density of the material the box is made from
+     Thickness (inches):      Density (pounds per cubic inch): 
+Enter the diameter of the balls you want to pack
+     Diameter (inches): 
+Enter the thickness and density of the material the balls are made from
+     Thickness (inches):      Density (pounds per cubic inch): 
+The weight of the empty box is 25935.95 pounds.
+The weight of one ball is 1.24 pounds.
+The box holds 24389 balls with 9317.53 cubic inches of wasted space.
+The total shipping weight of the box and balls is 56175.43 pounds.
+
+Thanks for using Packer! See you next time...

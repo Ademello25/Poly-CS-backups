@@ -1,0 +1,45 @@
+*
+* Welcome to Kinda-Boggle!
+*
+To get started, I'll need a seed value to generate
+psuedo-random numbers. Enter 0 for random behavior
+or any other integer for predictable behavior.
+
+Seed: 
+Wow, what a great seed value! I never would have thought of 5!
+
+The Boggle board is:
+
+T L W Q S
+O K P H D
+W U U O E
+A M W K S
+W X H J V
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: TL occurs first at row 0 column 0
+Backward: TL does not occur in the Boggle board!
+  Upward: TL does not occur in the Boggle board!
+Downward: TL does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+T L W Q S
+O K P H D
+W U U O E
+A M W K S
+W X H J V
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: GHC does not occur in the Boggle board!
+Backward: GHC does not occur in the Boggle board!
+  Upward: GHC does not occur in the Boggle board!
+Downward: GHC does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+Thanks for playing, see you next time!

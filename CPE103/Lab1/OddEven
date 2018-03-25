@@ -1,0 +1,26 @@
+/**
+ * A simple class to use to demonstrate testing with JUnit.
+ * Note that it contains a bug to show how JUnit reports failures.
+ *
+ * @author Kurt Mammen
+ * @version 09/15/2012
+ */
+public class OddEven
+{
+   private int value;
+
+   public OddEven(int value)
+   {
+      this.value = value;
+   }
+
+   public boolean odd()
+   {
+      return value % 2 == 1;
+   }
+
+   public boolean even()
+   {
+      return !odd();
+   }
+}  

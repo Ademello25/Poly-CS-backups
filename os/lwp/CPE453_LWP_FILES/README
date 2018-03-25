@@ -1,0 +1,17 @@
+Alexander DeMello (ademello)
+
+      Does not compile or run do to some short sightedness. I didn't pass OS last 
+   quarter but wrote a version of lwp and assumed I would be able to convert 
+   it easily while working on my networks assignments, this wasn't the case. 
+   The result is a half converted lwp file that doesn't compile or run. 
+   I'm turning this in at some hope of starting the race with a sprained ankle 
+   instead of a broken one.
+
+   Question answer: lwp cannot guarentee mutual exclusiveness between threads 
+      because it lacks a way to synchronize. Most basic thread management libraries
+      contain ways to guarentee mutual exclusiveness. LWP also does not include
+      semaphors which are also used for synchronizing threads. Adding semaphors 
+      and synchronization primitives will allow threads to run critical sections
+      without being preempted.
+
+

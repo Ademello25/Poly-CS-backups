@@ -1,0 +1,94 @@
+/*
+ * Assignment: Lab 11
+ * Course: CPE 101
+ * Author: Alexander DeMello
+ */
+
+#ifndef Lab_11_Header_h
+#define Lab_11_Header_h
+
+/* FUNCTION PROTOTYPE
+ * 
+ * Function name: findMax
+ *
+ * Description: given an array and its size, returns the max value in array
+ *
+ * Preconditions: the array is a double, and the size is an int
+ *
+ * Parameters:
+ *    a[]: an array
+ *    size: the size of input array
+ *
+ * Return: the highest value in the array
+ */
+double findMax(double a[], int size);
+
+/* FUNCTION PROTOTYPE
+ * 
+ * Function name: findLast
+ *
+ * Description: given an array and its size, returns the index of the final value input
+ *
+ * Preconditions: the array is a double, and the size is int and the input value is a double
+ *
+ * Parameters:
+ *    a[]: an array
+ *    size: the size of input array
+ *    find: the value that you wish to find
+ *
+ * Return: the index of the final time the input value is found
+ */
+int findLast( double a[], int size, double find);
+
+/* FUNCTION PROTOTYPE
+ * 
+ * Function name: inAscendingOrder
+ *
+ * Description: given an array and its size, tells whether or not the array is in ascending order
+ *
+ * Preconditions: the array is a double, and the size is an int
+ *
+ * Parameters:
+ *    a[]: an array
+ *    size: the size of input array
+ *
+ * Return: returns whether or not the array is in ascending order
+ */
+int inAscendingOrder(double a[], int size);
+
+/* FUNCTION PROTOTYPE
+ *
+ * Function name: intExpect
+ *
+ * Description: returns true or false for the input
+ *
+ * Preconditions: variables are int, so is return type
+ *
+ * Parameters:
+ *    expect: The expected of the true or false
+ *    result: The actual result of the true or false
+ *
+ * Return: whether the expected matches the true/false
+ */
+int intExpect(int expect, int result);
+
+/*
+ * FUNCTION PROTOTYPE
+ *
+ * Function name: approxEq
+ *
+ * Description: resturns true or false for the input
+ *
+ * Preconditions: variables are int, so is return type
+ *
+ * Parameters: 
+ *    expect: The expected of the true or false
+ *    result: The actualy result of the true or false
+ *
+ * Return: whether the expected matches the true/false
+ */
+double approxEq(double a, double b, double epsilon);
+
+
+
+#endif

@@ -1,0 +1,11 @@
+Alexander DeMello enrolled in 12pm lab attend 3pm lab
+File will compile with just "make"
+
+IP and ARP are implemented and were tested on vogon. TCP was attempted and everything except checksum
+functioned (few exceptions with the flags here). all TCP code is commented out currently because of 
+bugs caused by some shortcomings in the early design phase of the program which cause inconsistent 
+segfaults in the TCP code.
+
+nothing past this was attempted.
+
+apologies for the messy code, didnt get a chance to clean it up :(

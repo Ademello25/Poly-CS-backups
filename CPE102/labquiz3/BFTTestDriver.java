@@ -1,0 +1,77 @@
+import java.util.ArrayList;
+import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.EOFException;
+
+public class BFTTestDriver
+{
+   public static void main(String[] args)
+   {
+      boolean pass = true;
+
+      pass &= testRead();
+      pass &= testWrite();
+
+      if (pass)
+      {
+         System.out.println(
+            "\nCongratulation, you passed the provided MINIMAL test driver!\n"
+          + "This test driver only proves that your code will compile with\n"
+          + "the test driver that will be used for grading your solution, not\n"
+          + "that it actually works correctly. While this is essential, it\n"
+          + "does not ensure that you will earn a passing grade.\n"
+
+          + "\nTime permitting, you are encouraged to develop tests to verify\n"
+          + "your solution is working correctly.\n"
+          
+          + "\nFeel free to modify this provided test driver!\n");
+      }
+      else
+      {
+         System.out.println("\nErrors detected - not done yet!\n");
+      }
+   }
+
+   private static boolean testRead()
+   {
+      boolean pass = true;
+
+      try
+      {
+         ArrayList<Object> list = BinaryFileTools.read("testGoodFile.bin");
+      }
+      catch (FileFormatException e)
+      {
+      }
+      catch (EOFException e)
+      {
+      }
+      catch (FileNotFoundException e)
+      {
+      }
+      catch (IOException e)
+      {
+      }
+
+      return pass;
+   }
+   
+   private static boolean testWrite()
+   {
+      boolean pass = true;
+      ArrayList<Object> list = new ArrayList<Object>();
+
+      try
+      {
+         BinaryFileTools.write("MinimalLabQuiz3Test.bin", list);
+      }
+      catch (FileNotFoundException e)
+      {
+      }
+      catch (IOException e)
+      {
+      }
+
+      return pass;
+   }
+}

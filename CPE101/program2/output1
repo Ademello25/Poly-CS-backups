@@ -1,0 +1,25 @@
+Enter the location and dimensions of two rectangles...
+
+   First rectangle
+      x-coordinate of the lower-left corner:       y-coordinate of the lower-left corner:       width :       height: 
+   Second rectangle
+      x-coordinate of the lower-left corner:       y-coordinate of the lower-left corner:       width :       height: 
+The first rectangle has a perimeter of 8 and an area of 4.
+The second rectangle has a perimeter of 40 and an area of 100.
+
+The bounding rectangle is as follows...
+
+   Bounding Rectangle
+      x-coordinate of the lower-left corner: 2
+      y-coordinate of the lower-left corner: 2
+      width : 10
+      height: 10
+
+The intersection rectangle is as follows...
+
+   Intersection Rectangle
+      x-coordinate of the lower-left corner: 5
+      y-coordinate of the lower-left corner: 5
+      width : 2
+      height: 2
+

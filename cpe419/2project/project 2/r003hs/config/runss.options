@@ -1,0 +1,17 @@
+-r
+//home/ademello/CPE419/2Project/Project 2/r003hs
+--data-limit-mb=500
+--stack-stitching
+--follow-child
+--itt-config=frame
+--itt-config=task,event
+--stackwalk=offline
+--mrte-mode=auto
+--mrte-type=java
+--type=cpu:counters:nostack
+--type=cpu:stack
+--interval=10
+--
+/home/ademello/CPE419/L09/build/Lab09
+/home/ademello/CPE419/L09/resources
+//home/ademello/CPE419/L09/resources/collide1231.txt

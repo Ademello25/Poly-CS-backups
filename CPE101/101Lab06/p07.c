@@ -1,0 +1,35 @@
+/*
+ * Assignment: Lab 06
+ * Course: CPE 101
+ * Author: Alexander DeMello
+ */
+
+char letter(int r, int c)
+{
+   if(r < 10)
+   {
+      if((c-1) - r < 0)
+      {
+         return 'C';
+      }
+      else
+      { 
+         return 'X';
+      }
+   }
+   else
+   {
+      if(r > 9)
+      {
+         if((19 - r - c) < 0)
+         {
+            return 'X';
+         }
+         else
+         {
+            return 'C';
+         }
+      }
+   }
+   return 0;
+}

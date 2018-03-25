@@ -1,0 +1,9 @@
+'aabbccdd' with 'abc' inserted at 'a' is 'abcabcbbccdd'
+13 bytes allocated
+
+'dog' with 'cat' inserted at 'g' is 'docat'
+6 bytes allocated
+
+'abc' with 'abca' inserted at 'a' is 'abcabc'
+7 bytes allocated
+

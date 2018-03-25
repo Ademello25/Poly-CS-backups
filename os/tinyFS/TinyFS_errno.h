@@ -1,0 +1,15 @@
+#define EBAD_OPEN_DISK -1
+#define EREAD_BLOCK -2
+#define EWRITE_BLOCK -3
+#define EBAD_SYS_READ -4
+#define ENO_NEXT_FD -5
+#define EBAD_SYS_WRITE -6
+#define EFD_USED -7
+#define EBAD_TIME -8
+#define EADD_TO_SUP -9
+#define EBAD_CLOSE_FILE -10
+#define EFD_NOT_OPEN -11
+#define EINV_BLOCK_TYPE -12
+#define EBAD_CURSOR -13
+#define EBAD_FILENAME -14
+#define EIS_READ_ONLY -15

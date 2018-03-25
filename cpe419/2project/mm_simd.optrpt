@@ -1,0 +1,196 @@
+Intel(R) Advisor can now assist with vectorization and show optimization
+  report messages with your source code.
+See "https://software.intel.com/en-us/intel-advisor-xe" for details.
+
+
+Begin optimization report for: main(int, char **)
+
+    Report from: Auto-parallelization optimizations [par]
+
+
+LOOP BEGIN at mm_simd.cpp(80,4) inlined into mm_simd.cpp(37,13)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at mm_simd.cpp(81,7) inlined into mm_simd.cpp(37,13)
+      remark #25460: No loop optimizations reported
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mm_simd.cpp(87,4) inlined into mm_simd.cpp(37,13)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at mm_simd.cpp(88,7) inlined into mm_simd.cpp(37,13)
+      remark #25460: No loop optimizations reported
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mm_simd.cpp(117,4) inlined into mm_simd.cpp(37,13)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(37,13)
+   <Distributed chunk1>
+
+      LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(37,13)
+      <Distributed chunk1>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(37,13)
+      <Remainder loop for vectorization, Distributed chunk1>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(37,13)
+      <Remainder loop for vectorization, Distributed chunk1>
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(37,13)
+   <Distributed chunk2>
+
+      LOOP BEGIN at mm_simd.cpp(120,10) inlined into mm_simd.cpp(37,13)
+      <Peeled loop for vectorization>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(120,10) inlined into mm_simd.cpp(37,13)
+         remark #25460: No loop optimizations reported
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(120,10) inlined into mm_simd.cpp(37,13)
+      <Remainder loop for vectorization>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(120,10) inlined into mm_simd.cpp(37,13)
+      <Remainder loop for vectorization>
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mm_simd.cpp(58,4) inlined into mm_simd.cpp(40,4)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at mm_simd.cpp(59,7) inlined into mm_simd.cpp(40,4)
+      remark #25460: No loop optimizations reported
+   LOOP END
+LOOP END
+===========================================================================
+
+Begin optimization report for: mmWrite(myValue *, int, int)
+
+    Report from: Auto-parallelization optimizations [par]
+
+
+LOOP BEGIN at mm_simd.cpp(58,4)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at mm_simd.cpp(59,7)
+      remark #25460: No loop optimizations reported
+   LOOP END
+LOOP END
+===========================================================================
+
+Begin optimization report for: mmRead(FILE *, FILE *, int *, int *, int *, int *)
+
+    Report from: Auto-parallelization optimizations [par]
+
+
+LOOP BEGIN at mm_simd.cpp(80,4)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at mm_simd.cpp(81,7)
+      remark #25460: No loop optimizations reported
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mm_simd.cpp(87,4)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at mm_simd.cpp(88,7)
+      remark #25460: No loop optimizations reported
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mm_simd.cpp(117,4) inlined into mm_simd.cpp(98,13)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(98,13)
+   <Distributed chunk1>
+
+      LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(98,13)
+      <Distributed chunk1>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(98,13)
+      <Remainder loop for vectorization, Distributed chunk1>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(98,13)
+      <Remainder loop for vectorization, Distributed chunk1>
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at mm_simd.cpp(118,7) inlined into mm_simd.cpp(98,13)
+   <Distributed chunk2>
+
+      LOOP BEGIN at mm_simd.cpp(120,10) inlined into mm_simd.cpp(98,13)
+      <Peeled loop for vectorization>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(120,10) inlined into mm_simd.cpp(98,13)
+         remark #25460: No loop optimizations reported
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(120,10) inlined into mm_simd.cpp(98,13)
+      <Remainder loop for vectorization>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(120,10) inlined into mm_simd.cpp(98,13)
+      <Remainder loop for vectorization>
+      LOOP END
+   LOOP END
+LOOP END
+===========================================================================
+
+Begin optimization report for: mmCompute(myValue *, myValue *, int, int, int, int)
+
+    Report from: Auto-parallelization optimizations [par]
+
+
+LOOP BEGIN at mm_simd.cpp(117,4)
+   remark #25460: No loop optimizations reported
+
+   LOOP BEGIN at mm_simd.cpp(118,7)
+   <Distributed chunk1>
+
+      LOOP BEGIN at mm_simd.cpp(118,7)
+      <Distributed chunk1>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(118,7)
+      <Remainder loop for vectorization, Distributed chunk1>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(118,7)
+      <Remainder loop for vectorization, Distributed chunk1>
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at mm_simd.cpp(118,7)
+   <Distributed chunk2>
+
+      LOOP BEGIN at mm_simd.cpp(120,10)
+      <Peeled loop for vectorization>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(120,10)
+         remark #25460: No loop optimizations reported
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(120,10)
+      <Remainder loop for vectorization>
+      LOOP END
+
+      LOOP BEGIN at mm_simd.cpp(120,10)
+      <Remainder loop for vectorization>
+      LOOP END
+   LOOP END
+LOOP END
+===========================================================================

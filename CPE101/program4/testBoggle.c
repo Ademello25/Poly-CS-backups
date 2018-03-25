@@ -1,0 +1,513 @@
+/* Test driver to test the functions written for Program 4.
+ * 
+ * author: Kurt Mammen
+ */
+#include <stdio.h>
+#include <string.h>
+#include "boggle.h"
+
+/* Testing Position struct */
+typedef struct
+{
+   int row, col;
+} TestPosition;
+
+/* Local prototypes */
+int verifyBoard(char board[SIZE][SIZE]);
+int testNewBoggleBoard();
+int testBoggleBoardToString();
+int testFirstForward();
+int testFirstBackward();
+int testFirstDownward();
+int testFirstUpward();
+
+int main()
+{
+   /* Boolean value to keep track of success or failure */
+   /* Assume the best and set to true! */
+   int pass = 1;
+
+   printf("\nTest results for individual functions:\n\n");
+
+   pass &= testNewBoggleBoard();
+   pass &= testBoggleBoardToString();
+   pass &= testFirstForward();
+   pass &= testFirstBackward();
+   pass &= testFirstDownward();
+   pass &= testFirstUpward();
+
+   printf("\nCompleted tests for individual functions\n\n");
+
+   if (pass)
+   {
+      printf("*\n");
+      printf("* Congratulations, you passed all of the function tests!\n*\n");
+      printf("Don't forget that you must develop your own tests for the\n");
+      printf("user interface using the provided program (see assignment)\n");
+      printf("and redirection to develop expected output to compare with\n"); 
+      printf("your program's output using diff.\n\n");
+      printf("Your grade will be based on when you hand in a functionally\n");
+      printf("correct solution minus any deductions for things like, but\n");
+      printf("not limited to, efficiency, coding style, and required\n");
+      printf("documentation, if any.\n\n");
+
+      return 0;
+   }
+   else
+   {
+      printf("*\n");
+      printf("* You did not pass one or more function tests.\n*\n");
+      printf("You can see the tests by reading the source of the provided\n");
+      printf("test driver and must fix your code before handing it in to\n");
+      printf("receive any credit.\n\n");
+
+      return 1;
+   }
+}
+
+int testNewBoggleBoard()
+{
+   int pass = 1;
+   int r, c;
+   char board[SIZE][SIZE];
+
+   char expected876[SIZE][SIZE] = {{'C', 'T', 'O', 'N', 'U'},
+                                   {'D', 'U', 'X', 'X', 'M'},
+                                   {'T', 'U', 'W', 'K', 'Q'},
+                                   {'D', 'A', 'L', 'Z', 'J'},
+                                   {'I', 'L', 'C', 'R', 'G'}};
+
+   char expected345[SIZE][SIZE] = {{'J', 'N', 'R', 'O', 'F'},
+                                   {'B', 'L', 'U', 'T', 'T'},
+                                   {'X', 'M', 'X', 'H', 'G'},
+                                   {'E', 'S', 'B', 'Y', 'J'},
+                                   {'H', 'H', 'W', 'D', 'K'}};
+
+   newBoggleBoard(board, 876);
+
+   for (r = 0; r < SIZE; r++)
+   {
+      for (c = 0; c < SIZE; c++)
+      {
+         pass &= expected876[r][c] == board[r][c];
+      }
+   }
+   
+   newBoggleBoard(board, 345);
+
+   for (r = 0; r < SIZE; r++)
+   {
+      for (c = 0; c < SIZE; c++)
+      {
+         pass &= expected345[r][c] == board[r][c];
+      }
+   }
+
+   if (pass)
+   {
+      printf("   Passed");
+   }
+   else
+   {
+      printf("   FAILED");
+   }
+
+   printf(" newBoggleBoard(char board[SIZE][SIZE], int seed) tests\n");
+
+   return pass;
+}
+
+int testBoggleBoardToString()
+{
+   int pass = 1;
+   char str[1000];
+   char *ret;
+   
+   /* Allow for newline or not at end of string */
+   char *expected1 = "A B C D E\nF G H I J\nK L M N O\nP Q R S T\nU V W X Y\n";
+   char *expected11 = "A B C D E\nF G H I J\nK L M N O\nP Q R S T\nU V W X Y";
+   char *expected2 = "Y X W V U\nT S R Q P\nO N M L K\nJ I H G F\nE D C B A\n";
+   char *expected21 = "Y X W V U\nT S R Q P\nO N M L K\nJ I H G F\nE D C B A";
+
+   char board1[SIZE][SIZE] = {{'A', 'B', 'C', 'D', 'E'},
+                        {'F', 'G', 'H', 'I', 'J'},
+                        {'K', 'L', 'M', 'N', 'O'},
+                        {'P', 'Q', 'R', 'S', 'T'},
+                        {'U', 'V', 'W', 'X', 'Y'}};
+
+   char board2[SIZE][SIZE] = {{'Y', 'X', 'W', 'V', 'U'},
+                        {'T', 'S', 'R', 'Q', 'P'},
+                        {'O', 'N', 'M', 'L', 'K'},
+                        {'J', 'I', 'H', 'G', 'F'},
+                        {'E', 'D', 'C', 'B', 'A'}};
+
+   ret = boggleBoardToString(board1, str);
+   pass &= !strcmp(str, expected1) || !strcmp(str, expected11);
+   pass &= ret == str;
+   printf("%d\n", pass);
+   printf("'%s'\n", ret);
+   boggleBoardToString(board2, str);
+   pass &= !strcmp(str, expected2) || !strcmp(str, expected21);
+   pass &= ret == str;
+   printf("%d\n", pass);
+   printf("'%s'\n", str);
+   if (pass)
+   {
+      printf("   Passed");
+   }
+   else
+   {
+      printf("   FAILED");
+   }
+
+   printf(" boggleBoardToString(char board[SIZE][SIZE], char *string) tests\n");
+
+   return pass;
+}
+
+int testFirstForward()
+{
+   int pass = 1;
+   int len, r, c, j;
+   char str[10];
+   Position pos;
+   TestPosition tPos;
+   
+   char board[SIZE][SIZE] = {{'A', 'B', 'C', 'D', 'E'},
+                       {'F', 'G', 'H', 'I', 'J'},
+                       {'K', 'L', 'M', 'N', 'O'},
+                       {'P', 'Q', 'R', 'S', 'T'},
+                       {'U', 'V', 'W', 'X', 'Y'}};
+
+   /* Check all length strings */
+   for (len = 1; len < 6; len++)
+   {
+      /* For every row... */
+      for (r = 0; r < SIZE; r++)
+      {
+         /* For every column... */
+         for (c = 0; c <= SIZE - len; c++)
+         {
+            /* Make string */
+            for (j = 0; j < len; j++)
+            {
+               str[j] = board[r][c + j];
+            }
+
+            str[j] = 0;
+            
+            /* Find string */
+            pos = firstForward(board, str);
+
+            /* Verify Position */
+            /* Don't know names you used in your Position struct */
+            /* so I have to use a local typedef to access data */
+            /* MAKE SURE YOUR Position struct is correctly defined per spec! */
+            tPos = *((TestPosition*)(&pos));
+            pass &= tPos.row == r && tPos.col == c;
+
+            /* Verify Board - to detect board corruption by student's code */
+            pass &= verifyBoard(board);
+         }
+      }
+   }
+         
+   /* Should not find 'Z' */ 
+   pos = firstForward(board, "Z");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+ 
+   /* Try a string too long for board */
+   pos = firstForward(board, "KLMNOP");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+
+   /* Try a short string not in board */
+   pos = firstForward(board, "LMO");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+   
+   if (pass)
+   {
+      printf("   Passed");
+   }
+   else
+   {
+      printf("   FAILED");
+   }
+
+   printf(" firstForward(char board[SIZE][SIZE], char* string) tests\n");
+
+   return pass;
+}
+
+int testFirstBackward()
+{
+   int pass = 1;
+   int len, r, c, j;
+   char str[10];
+   Position pos;
+   TestPosition tPos;
+   
+   char board[SIZE][SIZE] = {{'A', 'B', 'C', 'D', 'E'},
+                       {'F', 'G', 'H', 'I', 'J'},
+                       {'K', 'L', 'M', 'N', 'O'},
+                       {'P', 'Q', 'R', 'S', 'T'},
+                       {'U', 'V', 'W', 'X', 'Y'}};
+
+   /* Check all length strings */
+   for (len = 1; len < 6; len++)
+   {
+      /* For every row... */
+      for (r = 4; r >= 0; r--)
+      {
+         /* For every column... */
+         for (c = 4; c >= len - 1; c--)
+         {
+            /* Make string */
+            for (j = 0; j < len; j++)
+            {
+               str[j] = board[r][c - j];
+            }
+
+            str[j] = 0;
+            
+            /* Find string */
+            pos = firstBackward(board, str);
+
+            /* Verify Position */
+            /* Don't know names you used in your Position struct */
+            /* so I have to use a local typedef to access data */
+            /* MAKE SURE YOUR Position struct is correctly defined per spec! */
+            tPos = *((TestPosition*)(&pos));
+            pass &= tPos.row == r && tPos.col == c;
+
+            /* Verify Board - to detect board corruption by student's code */
+            pass &= verifyBoard(board);
+         }
+      }
+   }
+         
+   /* Should not find 'Z' */ 
+   pos = firstBackward(board, "Z");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+ 
+   /* Try a string too long for board */
+   pos = firstBackward(board, "JKLMNO");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+
+   /* Try a short string not in board */
+   pos = firstBackward(board, "JLM");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+   
+   if (pass)
+   {
+      printf("   Passed");
+   }
+   else
+   {
+      printf("   FAILED");
+   }
+
+   printf(" firstBackward(char board[SIZE][SIZE], char* string) tests\n");
+
+   return pass;
+}
+
+int testFirstDownward()
+{
+   int pass = 1;
+   int len, r, c, j;
+   char str[10];
+   Position pos;
+   TestPosition tPos;
+   
+   char board[SIZE][SIZE] = {{'A', 'B', 'C', 'D', 'E'},
+                       {'F', 'G', 'H', 'I', 'J'},
+                       {'K', 'L', 'M', 'N', 'O'},
+                       {'P', 'Q', 'R', 'S', 'T'},
+                       {'U', 'V', 'W', 'X', 'Y'}};
+
+   /* Check all length strings */
+   for (len = 1; len < 6; len++)
+   {
+      /* For every row... */
+      for (r = 0; r <= SIZE - len; r++)
+      {
+         /* For every column... */
+         for (c = 0; c < SIZE; c++)
+         {
+            /* Make string */
+            for (j = 0; j < len; j++)
+            {
+               str[j] = board[r + j][c];
+            }
+
+            str[j] = 0;
+            
+            /* Find string */
+            pos = firstDownward(board, str);
+
+            /* Verify Position */
+            /* Don't know names you used in your Position struct */
+            /* so I have to use a local typedef to access data */
+            /* MAKE SURE YOUR Position struct is correctly defined per spec! */
+            tPos = *((TestPosition*)(&pos));
+            pass &= tPos.row == r && tPos.col == c;
+
+            /* Verify Board - to detect board corruption by student's code */
+            pass &= verifyBoard(board);
+         }
+      }
+   }
+         
+   /* Should not find 'Z' */ 
+   pos = firstDownward(board, "Z");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+ 
+   /* Try a string too long for board */
+   pos = firstDownward(board, "CHRMWX");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+
+   /* Try a short string not in board */
+   pos = firstDownward(board, "HMW");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+   
+   if (pass)
+   {
+      printf("   Passed");
+   }
+   else
+   {
+      printf("   FAILED");
+   }
+
+   printf(" firstDownward(char board[SIZE][SIZE], char* string) tests\n");
+
+   return pass;
+}
+
+int testFirstUpward()
+{
+   int pass = 1;
+   int len, r, c, j;
+   char str[10];
+   Position pos;
+   TestPosition tPos;
+   
+   char board[SIZE][SIZE] = {{'A', 'B', 'C', 'D', 'E'},
+                       {'F', 'G', 'H', 'I', 'J'},
+                       {'K', 'L', 'M', 'N', 'O'},
+                       {'P', 'Q', 'R', 'S', 'T'},
+                       {'U', 'V', 'W', 'X', 'Y'}};
+
+   /* Check all length strings */
+   for (len = 1; len < 6; len++)
+   {
+      /* For every row... */
+      for (r = 4; r >= len - 1; r--)
+      {
+         /* For every column... */
+         for (c = 4; c >= 0; c--)
+         {
+            /* Make string */
+            for (j = 0; j < len; j++)
+            {
+               str[j] = board[r - j][c];
+            }
+
+            str[j] = 0;
+            
+            /* Find string */
+            pos = firstUpward(board, str);
+
+            /* Verify Position */
+            /* Don't know names you used in your Position struct */
+            /* so I have to use a local typedef to access data */
+            /* MAKE SURE YOUR Position struct is correctly defined per spec! */
+            tPos = *((TestPosition*)(&pos));
+            pass &= tPos.row == r && tPos.col == c;
+
+            /* Verify Board - to detect board corruption by student's code */
+            pass &= verifyBoard(board);
+         }
+      }
+   }
+         
+   /* Should not find 'Z' */ 
+   pos = firstUpward(board, "Z");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+ 
+   /* Try a string too long for board */
+   pos = firstUpward(board, "WRMHCX");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+
+   /* Try a short string not in board */
+   pos = firstUpward(board, "RMC");
+   tPos = *((TestPosition*)(&pos));
+   pass &= tPos.row == -1 && tPos.col == -1;
+   
+   if (pass)
+   {
+      printf("   Passed");
+   }
+   else
+   {
+      printf("   FAILED");
+   }
+
+   printf(" firstUpward(char board[SIZE][SIZE], char* string) tests\n");
+
+   return pass;
+}
+
+/* TEST FUNCTION TEMPLATE - 19 lines
+int test()
+{
+   int pass = 1;
+   int r, c;
+   char board[SIZE][SIZE];
+   
+   if (pass)
+   {
+      printf("   Passed");
+   }
+   else
+   {
+      printf("   FAILED");
+   }
+
+   printf(" () tests\n");
+
+   return pass;
+}
+*/
+
+int verifyBoard(char board[SIZE][SIZE])
+{
+   char ch = 'A';
+   int r, c;
+
+   for (r = 0; r < SIZE; r++)
+   {
+      for (c = 0; c < SIZE; c++)
+      {
+         if (board[r][c] != ch)
+         {
+            return 0;
+         }
+         
+         ch++;
+      }
+   }
+
+   return 1;
+}

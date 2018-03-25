@@ -1,0 +1,167 @@
+
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+/**
+ * Tests for the Simple linked list class
+ *
+ * @author Alex DeMello
+ * @version Lab1
+ */
+public class SimpleLinkedListTests
+{
+
+   /**
+    * Test of add method, of class SimpleLinkedList.
+    */
+   @Test
+   public void testAddGenericType() 
+   {
+      System.out.println("appending generic type");
+      Object data = "Alex";
+      SimpleLinkedList instance = new SimpleLinkedList();
+      instance.add(data);
+      Object result = instance.get(0);
+      assertTrue(result == data);
+   }
+
+   /**
+    * Test of add method, of class SimpleLinkedList.
+    */
+   @Test
+   public void testAddInt() 
+   {
+      System.out.println("appending an integer");
+      int data = 5;
+      SimpleLinkedList instance = new SimpleLinkedList();
+      instance.add(data);
+      instance.add(5);
+      int result = (Integer)instance.get(0);
+      assertTrue(result == data);
+   }
+   
+   @Test
+   public void testAddindexGenericType() 
+   {
+      System.out.println("adding generic type");
+      Object data = "Alex";
+      
+      SimpleLinkedList instance = new SimpleLinkedList();
+      instance.add(0, data);
+      Object result = instance.get(0);
+      assertTrue(result == data);
+   }
+   @Test
+   public void testAddindexInt() 
+   {
+      System.out.println("adding generic type");
+      
+      Object data = 1;
+      Object dat = 5;
+      
+      SimpleLinkedList instance = new SimpleLinkedList();
+      
+      instance.add(0, data);
+      instance.add(1, dat);
+      Object result = instance.get(0);
+      Object res = instance.get(1);
+      assertTrue(result == data);
+      assertTrue(res == dat);
+   }
+   
+
+   /**
+    * Test of get method, of class SimpleLinkedList.
+    */
+   @Test
+   public void testGet() 
+   {
+      System.out.println("get");
+      int index = 0;
+      SimpleLinkedList instance = new SimpleLinkedList();
+      Object expResult = null;
+      instance.add(expResult);
+      Object result = instance.get(index);
+      assertEquals(expResult, result);
+   }
+
+   /**
+    * Test of remove method, of class SimpleLinkedList.
+    */
+   @Test
+   public void testRemove() 
+   {
+      System.out.println("remove");
+      int index = 0;
+      SimpleLinkedList instance = new SimpleLinkedList();
+      Object expResult = null;
+      instance.add(expResult);
+      Object result = instance.remove(index);
+      assertEquals(expResult, result);
+   }
+
+   /**
+    * Test of size method, of class SimpleLinkedList.
+    */
+   @Test
+   public void testSizeAfterConstruction() 
+   {
+      System.out.println("size");
+      SimpleLinkedList list = new SimpleLinkedList();
+      assertTrue(list.size() == 0);
+   }
+   
+   @Test
+   public void testSizeAfterAdd() 
+   {
+      System.out.println("size");
+      SimpleLinkedList list = new SimpleLinkedList();
+      list.add(5);
+      list.add("Hello");
+      assertTrue(list.size() == 2);
+   }
+   
+   @Test
+   public void testSizeAfterRemove() 
+   {
+      System.out.println("size");
+      SimpleLinkedList list = new SimpleLinkedList();
+      list.add(5);
+      list.add("Hello");
+      list.remove(1);
+      assertTrue(list.size() == 1);
+   }
+   
+   /**
+    * Test if the class throws exceptions properly.
+    */
+   
+   @Test(expected = IndexOutOfBoundsException.class)
+   public void getAtConstruction()
+   {
+      System.out.println("exception tests get");
+      SimpleLinkedList list = new SimpleLinkedList();
+      list.get(5);
+      
+   }
+   
+   @Test(expected = IndexOutOfBoundsException.class)
+   public void addIndexAtConstruction()
+   {
+      System.out.println("exception tests add");
+      SimpleLinkedList list = new SimpleLinkedList();
+      list.add(5, 5);
+      
+   }
+   
+   @Test(expected = IndexOutOfBoundsException.class)
+   public void renoveAtConstruction()
+   {
+      System.out.println("exception tests remove");
+      SimpleLinkedList list = new SimpleLinkedList();
+      list.remove(5);
+      
+   }
+   
+   
+}

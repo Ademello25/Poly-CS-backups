@@ -1,0 +1,15 @@
+Double precision is still broken as last week, couldnt make it to office hours
+because of interviews this week. I plan on coming to you in office hours or
+lab to figure out why fread is reading 0's in the case of DOUBLE being defined.
+
+Single precision runtime tests for 1048x1048 matrix
+1          2          3
+1.964s    1.945s     1.954s
+
+Single precision runtime tests for 32x32 matrix
+1          2          3
+.384s     .384s     .369s
+
+these times are notably faster than the my sgemm and dgemm implementations
+and that is because i have reverted to row major and did not use fseek as
+was used in the sgemm/dgemm implementation

@@ -1,0 +1,15 @@
+char letter(int r, int c)
+{
+   if( r == c)
+   {
+      return 'X';
+   }
+   if((r + c) == 6)
+   {
+      return 'X';
+   }
+   else
+   {
+      return 'O';
+   }
+}

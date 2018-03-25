@@ -1,0 +1,266 @@
+*
+* Welcome to Kinda-Boggle!
+*
+To get started, I'll need a seed value to generate
+psuedo-random numbers. Enter 0 for random behavior
+or any other integer for predictable behavior.
+
+Seed: 
+Wow, what a great seed value! I never would have thought of -3857!
+
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: XXXXX does not occur in the Boggle board!
+Backward: XXXXX does not occur in the Boggle board!
+  Upward: XXXXX does not occur in the Boggle board!
+Downward: XXXXX does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: XXXXX does not occur in the Boggle board!
+Backward: XXXXX does not occur in the Boggle board!
+  Upward: XXXXX does not occur in the Boggle board!
+Downward: XXXXX does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: BME occurs first at row 0 column 0
+Backward: BME does not occur in the Boggle board!
+  Upward: BME does not occur in the Boggle board!
+Downward: BME does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: BME occurs first at row 0 column 0
+Backward: BME does not occur in the Boggle board!
+  Upward: BME does not occur in the Boggle board!
+Downward: BME does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: UY occurs first at row 0 column 3
+Backward: UY does not occur in the Boggle board!
+  Upward: UY occurs first at row 1 column 4
+Downward: UY does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: EUY occurs first at row 0 column 2
+Backward: EUY does not occur in the Boggle board!
+  Upward: EUY does not occur in the Boggle board!
+Downward: EUY does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: GDTOZ occurs first at row 3 column 0
+Backward: GDTOZ does not occur in the Boggle board!
+  Upward: GDTOZ does not occur in the Boggle board!
+Downward: GDTOZ does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: YUUZE does not occur in the Boggle board!
+Backward: YUUZE does not occur in the Boggle board!
+  Upward: YUUZE does not occur in the Boggle board!
+Downward: YUUZE occurs first at row 0 column 4
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: YUUZEE does not occur in the Boggle board!
+Backward: YUUZEE does not occur in the Boggle board!
+  Upward: YUUZEE does not occur in the Boggle board!
+Downward: YUUZEE does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: YUEMB does not occur in the Boggle board!
+Backward: YUEMB occurs first at row 0 column 4
+  Upward: YUEMB does not occur in the Boggle board!
+Downward: YUEMB does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: ERKQE occurs first at row 4 column 0
+Backward: ERKQE does not occur in the Boggle board!
+  Upward: ERKQE does not occur in the Boggle board!
+Downward: ERKQE does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: EQKRE does not occur in the Boggle board!
+Backward: EQKRE occurs first at row 4 column 4
+  Upward: EQKRE does not occur in the Boggle board!
+Downward: EQKRE does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: BFEGE does not occur in the Boggle board!
+Backward: BFEGE does not occur in the Boggle board!
+  Upward: BFEGE does not occur in the Boggle board!
+Downward: BFEGE occurs first at row 0 column 0
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: EGEFB does not occur in the Boggle board!
+Backward: EGEFB does not occur in the Boggle board!
+  Upward: EGEFB occurs first at row 4 column 0
+Downward: EGEFB does not occur in the Boggle board!
+
+Would you like to look for another string (yes/no)? 
+The Boggle board is:
+
+B M E U Y
+F O T V U
+E J Z P U
+G D T O Z
+E R K Q E
+
+What string would you like to look for? 
+The search results are:
+
+ Forward: E occurs first at row 0 column 2
+Backward: E occurs first at row 0 column 2
+  Upward: E occurs first at row 0 column 2
+Downward: E occurs first at row 0 column 2
+
+Would you like to look for another string (yes/no)? 
+Thanks for playing, see you next time!

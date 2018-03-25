@@ -1,0 +1,3 @@
+This file will compile with this makefile with just the "make" command. 
+While currently broken it may also be compiled and run with "make DOUBLE=1"
+

@@ -1,0 +1,18 @@
+Enter the location and dimensions of two rectangles...
+
+   First rectangle
+      x-coordinate of the lower-left corner:       y-coordinate of the lower-left corner:       width :       height: 
+   Second rectangle
+      x-coordinate of the lower-left corner:       y-coordinate of the lower-left corner:       width :       height: 
+The first rectangle has a perimeter of 12 and an area of 9.
+The second rectangle has a perimeter of 4 and an area of 1.
+
+The bounding rectangle is as follows...
+
+   Bounding Rectangle
+      x-coordinate of the lower-left corner: 2
+      y-coordinate of the lower-left corner: 2
+      width : 6
+      height: 6
+
+The rectangles do not intersect!

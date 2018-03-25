@@ -1,0 +1,13 @@
+In order to run this program you must first run 
+          python inputTrimmer.py
+with airports.dat and routes.dat in the directory
+or the program will not recieve the proper inputs and break.
+the proper input files airpots.txt and routes.txt are included if this
+does not work.
+
+Compiling the code can simply be done with 
+          make
+
+Past this you simply run the program with 
+          ./partsp
+

@@ -1,0 +1,26 @@
+Major Notes: Only Square matrices work with cublas implementation. using make DOUBLE=1 does not appear to make a functioning verison and i dont know why. All values are read in as 0 if DOUBLE is defined in the make file. File also would not compile on non-lab machines (even when ssh'd to a lab machine).
+
+lab1a results: (s)
+32x32:     0.07    .015  .005
+555x666:   .864    .862  .863
+1048:    10.622    9.901  10.89
+
+lab1b result: (s)
+32x32:    .609    .557   .560
+555x666:   B  R  O  K  E  N
+1048:      4.829   4.738  4.713
+
+average runtime a32: .09
+average runtime a1048: 10.471
+
+average runtime b32: .5753
+average runtime b1048: 4.76
+
+speedup 32: -600%
+speedup 555x666: N/A
+speedup 1048: 219.9% 
+
+performace calculation:
+F = E(s-1)  /  (E-1)s  = 2048(2.199 -1)  /  (2048 -1)2.199 =  .545
+
+Final Personal Notes: Seek more help in future/earlier in the week. Lots of overhead to how I implement column major format, needs major reworking. Non-square matrices broken as shit need to find time to fix.

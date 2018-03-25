@@ -1,0 +1,9 @@
+to compile use
+   make DOUBLE COLMAJ          for double precision column major
+just use
+   make        for single precision row major 
+
+if make isnt recompiling and giving "mm up to date" then rm mm from the folder
+
+to run use
+./mm <file1> <file2>    dont use any other commands use this specific line

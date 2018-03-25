@@ -1,0 +1,11 @@
+Vanessa Villa, and Alexander DeMello
+
+Our tinyFS functions as specified with each of the functions.
+We chose to implement Directory listing and renaming, read only 
+support/writeByte support, as well as timestamps for each 
+file as our three extra implementations.
+In order to show that timestamps are working correctly we create a file
+and write to it as well as access it and check the time stamps values 
+within the file. This ensures that we are issuing our times correctly.
+
+Compiles with "make" or "make clean all". will run with ./tinyFsDemo

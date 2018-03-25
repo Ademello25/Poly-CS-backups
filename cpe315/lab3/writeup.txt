@@ -1,0 +1,11 @@
+Lab 3 writeup Alex DeMello and Peter Chu
+
+For -2 then 101, it took ~155
+For 101 then -2 it took ~1000 instructions +- 50 to 100 due to counting errors
+
+we think the latter test where -2 is the multiplier has so many more
+instructions due to the fact that there is a leading 1 on the integer
+which causes it to have to shift all the way down to perform on the signed
+bit.
+
+

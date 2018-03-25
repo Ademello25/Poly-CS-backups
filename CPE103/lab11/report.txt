@@ -1,0 +1,36 @@
+        Insertion Sort    2,500 elements     (observed):         30ms
+                          5,000 elements     (observed):        116ms
+                         10,000 elements     (observed):        512ms
+                         20,000 elements     (observed):       2155ms
+                        500,000 elements   (calculated):    1346875ms
+                      5,000,000 elements:  (calculated):  134687500ms
+
+        Shell Variation         2,500 elements   (observed):    8ms
+                                5,000 elements   (observed):    11ms
+                               10,000 elements   (observed):    20ms
+                               20,000 elements   (observed):    95ms
+                              500,000 elements (calculated):    59375ms
+                            5,000,000 elements (calculated):    5937500ms
+
+        Hibbard Variation       2,500 elements   (observed):    4ms
+                                5,000 elements   (observed):    6ms
+                               10,000 elements   (observed):    10ms
+                               20,000 elements   (observed):    35ms
+                              500,000 elements (calculated):    4375ms
+                            5,000,000 elements (calculated):    437500ms
+
+        Sedgewick Variation     2,500 elements   (observed):    4ms
+                                5,000 elements   (observed):    6ms
+                               10,000 elements   (observed):    9ms
+                               20,000 elements   (observed):    26ms
+                              500,000 elements   (observed):    1650ms       <---Notice this additional required observation!
+                              500,000 elements (calculated):    1900ms
+                            5,000,000 elements (calculated):    40947ms
+
+        Heap Sort               2,500 elements   (observed):    18ms
+                                5,000 elements   (observed):    23ms
+                               10,000 elements   (observed):    33ms
+                               20,000 elements   (observed):    120ms
+                              500,000 elements   (observed):    2500ms       <---Notice this additional required observation!
+                              500,000 elements (calculated):    3018ms
+                            5,000,000 elements (calculated):    238937ms 

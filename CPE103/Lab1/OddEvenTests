@@ -1,0 +1,68 @@
+/**
+ * A simple JUnit test class to demonstrate how to write JUnit tests.
+ *
+ * @author Kurt Mammen
+ * @version 09/14/2012 (Written to JUnit-4.10)
+ */
+
+/* The static import, below, allows you to call static methods of a class
+ * without having to specify the class name when calling its static methods.
+ * For example:
+ *
+ *   assertTrue(x.equals(y));
+ *
+ * Instead of:
+ *
+ *   Assert.assertTrue(x.equals(y));
+ */
+import static org.junit.Assert.*;
+
+/* This import allows us to use the required @Test annotation, and others,
+ * without having to type @org.junit.Test everywhere - I like that!
+ */
+import org.junit.*;
+
+/* It is common to name test classes with the same name as the class
+ * being tested with the word Test or Tests appended to the end. This
+ * way the class and test class will appear next to each other in the
+ * file system.
+ */
+public class OddEvenTests
+{
+   /* You annotate each JUnit test method with @Test (Be sure to see
+    * the required import above. Try to make the test simple and
+    * clear. You should write tests for one method or even part of the
+    * functionality of one method if it is complex.
+    *
+    * Use meaningful names, the name of the method being tested with
+    * the word Test appended is a common pattern.
+    */
+   @Test public void oddTest()
+   {
+      // Set up the test input
+      OddEven ref = new OddEven(86);
+
+      // Test that the odd method returns the expected false. 
+      // NOTE: There are many more assert methods - be sure to read
+      //       about them in the JUnit documentation!
+      assertFalse(ref.odd());
+      
+      // You can sometimes make the test code shorter by combining
+      // input creation and the test in one step, for Example:
+      assertTrue((new OddEven(125)).odd());
+
+      // Here are the rest of the odd test cases...
+      assertFalse((new OddEven(-62)).odd());
+      assertTrue((new OddEven(-3)).odd());
+      assertFalse((new OddEven(0)).odd());
+   }
+   
+   @Test public void evenTest()
+   {
+      assertTrue((new OddEven(86)).even());
+      assertFalse((new OddEven(125)).even());
+      assertTrue((new OddEven(-62)).even());
+      assertFalse((new OddEven(-3)).even());
+      assertTrue((new OddEven(0)).even());
+   }
+}

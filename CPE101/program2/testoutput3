@@ -1,0 +1,6 @@
+Enter the location and dimensions of two rectangles...
+
+   First rectangle
+      x-coordinate of the lower-left corner:       y-coordinate of the lower-left corner:       width :       height: 
+Sorry, you specified an invalid rectangle.
+Terminating program - goodbye!

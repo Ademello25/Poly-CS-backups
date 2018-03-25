@@ -1,0 +1,25 @@
+/*
+ * Assignment: Lab 06
+ * Course: CPE 101
+ * Author: Alexander DeMello
+ */
+
+char letter(int r, int c)
+{
+   if(((c < 10) && (c > 3) && (r < 4) && (r > 1)) || ((c < 7) && (c >3) && (r < 6) && (r > 1)))
+   {
+      return 'Z';
+   }
+   if((c < 10) && (c > 6) && (r < 6) && (r > 3))
+   {
+      return 'X';
+   }
+   if(((c < 13) && (c > 9) && (r < 7) && (r >3)) || ((c < 13) && (c >6) && (r = 6)))
+   {
+      return 'B';
+   }
+   else
+   {
+      return'T';
+   }
+}

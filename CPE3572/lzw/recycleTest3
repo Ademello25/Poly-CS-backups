@@ -1,0 +1,918 @@
+LZWCmp/Compress
+
+Copyright 2013, Clinton A Staley
+
+10/30 Improved description of CodeSink
+11/1 Some hints on tree traversal state
+Overview
+
+This lecture segment goes over the LZW Compress/LZWCmp project. Note that this lecture is an overview. The formal project specification and LZWCmp.h header file comments should be your main resource. Also, this lecture assumes you've already done the lecture on LZWExp.
+
+Concept List
+
+Progressively-traversed BST
+CodeSink
+
+Let's start with the CodeSink typedef. First, note that CodeSink is a type, not a variable. The field sink of LZWCmp is a variable of this type. sink points to a callback function, of the type inplied by CodeSink. This callback function, supplied from outside of LZWCmp, accepts compressed data in the form of a 32-bit unsigned int. (The type uint is defined as such in MyLib.h.) It also takes a configuration parameter, as in the lectures on function pointers. This is pointed to by sinkState, and may be NULL if no configuration is needed. And the callback function takes one extra parameter, a boolean done indicating that the end of compressed data has been reached. After all compressed data has been sent, LZWCmp makes one more callback with garbage code value and done set to true.
+
+Tree Data Structure
+
+LZWCmp uses a binary tree to hold the symbol sequences for known codes, starting with the initial alphabet, and adding new sequences/codes as the algorithm progresses. LZW decompression gets code numbers from the compressed data and uses the code number to get the corresponding symbol sequence. By contrast, LZW compression gets symbol sequences from the uncompressed data, and must look up their corresponding code numbers alphabetically. In decompression the "key" for lookup is the code number, but in compression, the "key" for lookup is the symbol sequence.
+
+We'll use code hunting as the term for looking up a code number based on a symbol sequence.
+
+Code Hunting
+
+Consider what code hunting takes. If, for instance, we see 'a' in the input, should we output the one-symbol code 97 for it? That depends on the next symbol, and on whether we have a code for the two-symbol sequence. If the next symbol is 'b', and we have a code 'ab' (say code 260), then we should not output code 97; we should wait and output a multisymbol code.
+
+Question 1:
+So, if we see 'ab' in the input, and if we do have a code 260 representing 'ab', does that mean we should output code 260? Why or why not?
+
+Answer 1:
+It still depends. If the next symbol after 'ab' is 'c', and if we have a code for 'abc', we should output that, or perhaps some even longer code. If instead the next symbol is, say, 'd', and we don't have a code for 'abd', then we would output code 260.
+
+
+
+In general, we find the longest possible code, by starting with a one-symbol code, and then picking longer and longer codes as we get new symbols, until we finally get a symbol S that cannot be fit into any code we have. Then we output the longest code C that we found, and also add a new code D by adding symbol S to C. And we start a new code hunt, starting with S.
+
+Doing code hunts in a CodeSet-type dictionary could be very tedious. Codes aren't in sorted order (except the initial codes) and so we'd need to do repeated iterations through the dictionary as we look for longer and longer codes.
+
+What we need is a different data structure, that lets us rapidly find the code for a symbol sequence. A binary search tree is just such a data structure.
+
+Tree Review
+
+The upcoming discussion assumes you know how a binary search tree (BST) works. Now's a good time to look up BST concepts from prior coursework if you need to. The good news is that you need only to know BST basics, including adding and searching, but not deletion. Here are some concepts to be sure you have from your review:
+
+BSTs have nodes. Each node has a key and a left and right pointer to other nodes, termed its child nodes. It is their parent node.
+
+One node, the root is at the top of the tree – the ultimate parent. You diagram/visualize the tree as "hanging" from that root node, growing downward from it.
+
+A parent node P's child nodes may in turn point to other child nodes (unsurprisingly called P's grandchildren or descendants) which in turn may point to further child nodes, etc. in a potentially infinitely branching pattern.
+
+One or both of a node's child pointers may be null, which is how the BST reaches its bottom. If both pointers are null, the node is a leaf.
+
+In a BST, all descendant nodes reached from a parent P's left pointer have key values less than P's, and all descendant nodes to P's right have larger key values. In effect, the left pointer from P points to a mini-BST of children, called a subtree, all of which have keys less than P's, and its right pointer points to a mini-BST of children having keys greater than P's. P's left and right children are the subroots of their own small BSTs.
+
+Each subtree is similarly organized, with nodes having keys less than its subroot's key falling to the left of the subroot, and those with keys greater falling to the right of the subroot. The BST thus divides the key values more and more finely at each level, in a recursive pattern.
+
+You search for a key K in the BST by starting at the root. If K matches the root's key, you're done. If not, then if K is less than the root's key, any node holding K must be to the root's left, and if K is greater than the root's key, any node holding K must be to the root's right. So you go to the left or right child, and repeat the process. At each node, you either find K, or are guided to the left or right. This process guarantees finding K, if it's in the BST at all.
+
+If K is not in the tree, then you ultimately reach a node N whose left/right pointer that should have led to K is instead NULL. (Note this doesn't necessarily mean N is a leaf, since N's other pointer might be non-NULL.) You can correctly add a new node containing K by hanging a new leaf node containing K off of that pointer. Doing this ensures you'll find K by the process in point 7, should you search for it again.
+
+The search process in point 7 is fast if the tree doesn't have too many generations, or levels in it. If the tree is reasonably balanced, with most nodes having both left and right children, this wil be so. Indeed, a tree of L levels may have 2L-1 nodes in it – one of 20 levels may have over a million nodes, meaning such a balanced tree lets you find one key out of a million with 20 steps.
+
+Question 1
+Assume the initial dictionary for an LZW compress is 'a', 'b', 'c', 'd' – four keys. Insert them into an empty BST, in that order. How many levels does the BST have?
+
+Answer 1
+Four levels. Each key falls to the right of the prior key, so the tree has no two-child nodes.
+
+a
+\
+b
+\
+c
+\
+d
+
+
+If you're up on your BST terminology, you'll know that a BST with no two-child nodes is called a degenerate BST – in effect a linked list with extra unused pointers. This not a good shape for a BST since it's inefficient, but we'll change it quickly.
+
+Question 2
+Now add keys 'ab', 'bc', 'aa', and 'aba'. How many levels does the tree have now? Remember that by lexicographic order, 'ab' is greater than 'a'.
+
+Answer 2
+Still four. 'ab' is greater than 'a', but less than 'b', so it goes to 'b's left. 'bc' goes to 'c's left, 'aa' goes to 'ab's left, and 'aba' to its right
+
+a
+\
+b
+/ \
+ab c
+/ \ / \
+aa aba bc d
+
+
+Again, this is not a BST introduction. If these concepts aren't clear in review, you need to consult other resources and prior coursework until you see how we arrived at the two trees here.
+
+Special LZW Tree Issues
+
+The BST for LZW compression starts with one node for each 1-symbol code in the initial dictionary. It then adds new symbol sequences to the BST as the LZW algorithm adds them to the dictionary, so it can find any prior symbol sequence by searching the BST. But, there are two special issues to consider:
+
+Keys arrive incrementally
+First, you don't get an entire key at once; keys arrive one symbol at a time. For instance, say the key (symbol sequence) 'a' is in the BST (in the LZW dictionary). If we see the letter 'a' in the uncompressed input, we might search the BST for that key and find it, outputting the corresponding code. But, how do we know that 'ab', or even 'abc' is not also in the BST? If they are, then stopping with just 'a' violates the LZW algorithm. And we wouldn't get the letters all at once. Each one arrives in a different call of LZWCmpEncode. Indeed, in extreme case it might take hundreds of calls to get all the symbols for one key!
+
+So, one of the biggest challenges in this data structure, and one you must figure out with just a few hints from this overview, is how to take one symbol at a time, and traverse the BST incrementally. Here are the hints:
+
+1. At any point, you'll have a partial key, comprised of the symbols thus far seen, that matches at least the prefix of some BST node.
+
+2. You need to track what node in the BST you're currently at, and how much is matched.
+
+3. As each new symbol arrives, you might need to go left or right in the BST. But you might stay with the present node, too.
+
+4. When you reach a null pointer, you can deduce both what key should be used, and what key should be added.
+
+5. There are 4 fields in LZWCmp to track this process. Read their comments.
+
+Holding all the keys in open form is too space intensive
+Especially if LZW codes become long, the obvious choice of representing each code as an allocated block of symbols becomes too slow and memory expensive. Fortunately, we have a very compact way to represent a dictionary of LZW codes – a CodeSet. So, each BST node will hold a code number, and the LZW compression algorithm will include a CodeSet with contents just like those for the expansion algorithm.
+
+So, for instance, node X in the tree might have code number 260 as its data, representing symbol sequence "aa" if expanded, while node Y might have code 259 as its data, representing symbol sequence "bb". Node Y would still be greater than node X in the tree, despite having a smaller code number, because we sort by symbol sequences. But except when actually comparing symbol sequences, we'd hold just the code numbers in the nodes to save space.
+
+As you traverse the BST, you get each symbol sequence from this CodeSet, using the code number in each node. But, be sure to free each sequence once you move past its node, or you'll break the memory usage requirements. At any time, at most one or two codes should be expanded, and the rest are in the CodeSet.
+
+Freelist
+
+The need to allocate and free many tree nodes is the biggest weakness of the BST data structure. malloc and free look like quick operations since they entail only one line of code each, but in fact they can be so time consuming that in extreme cases 50% of your program's execution time may be spent in these functions alone. In our project, we'll fix that by maintaining a freelist of TreeNode structs. (We assume you understand freelists from other lectures at this point.)
+
+Question 6:
+TreeNodes are designed to be in tree structures. How would we make a simple linked list of them? What would we use for a next pointer? (Feel free to repurpose any part of the TreeNode for this; if a TreeNode is on the freelist, we don't care about its contents any more.)
+
+Answer 6:
+We need some sort of a “next” pointer to link nodes on the freelist. Might as well use, either the right or left child pointer for this. We can create a linked list of TreeNodes, then, by linking them through their right pointers.LZWCmp/Compress
+
+Copyright 2013, Clinton A Staley
+
+10/30 Improved description of CodeSink
+11/1 Some hints on tree traversal state
+Overview
+
+This lecture segment goes over the LZW Compress/LZWCmp project. Note that this lecture is an overview. The formal project specification and LZWCmp.h header file comments should be your main resource. Also, this lecture assumes you've already done the lecture on LZWExp.
+
+Concept List
+
+Progressively-traversed BST
+CodeSink
+
+Let's start with the CodeSink typedef. First, note that CodeSink is a type, not a variable. The field sink of LZWCmp is a variable of this type. sink points to a callback function, of the type inplied by CodeSink. This callback function, supplied from outside of LZWCmp, accepts compressed data in the form of a 32-bit unsigned int. (The type uint is defined as such in MyLib.h.) It also takes a configuration parameter, as in the lectures on function pointers. This is pointed to by sinkState, and may be NULL if no configuration is needed. And the callback function takes one extra parameter, a boolean done indicating that the end of compressed data has been reached. After all compressed data has been sent, LZWCmp makes one more callback with garbage code value and done set to true.
+
+Tree Data Structure
+
+LZWCmp uses a binary tree to hold the symbol sequences for known codes, starting with the initial alphabet, and adding new sequences/codes as the algorithm progresses. LZW decompression gets code numbers from the compressed data and uses the code number to get the corresponding symbol sequence. By contrast, LZW compression gets symbol sequences from the uncompressed data, and must look up their corresponding code numbers alphabetically. In decompression the "key" for lookup is the code number, but in compression, the "key" for lookup is the symbol sequence.
+
+We'll use code hunting as the term for looking up a code number based on a symbol sequence.
+
+Code Hunting
+
+Consider what code hunting takes. If, for instance, we see 'a' in the input, should we output the one-symbol code 97 for it? That depends on the next symbol, and on whether we have a code for the two-symbol sequence. If the next symbol is 'b', and we have a code 'ab' (say code 260), then we should not output code 97; we should wait and output a multisymbol code.
+
+Question 1:
+So, if we see 'ab' in the input, and if we do have a code 260 representing 'ab', does that mean we should output code 260? Why or why not?
+
+Answer 1:
+It still depends. If the next symbol after 'ab' is 'c', and if we have a code for 'abc', we should output that, or perhaps some even longer code. If instead the next symbol is, say, 'd', and we don't have a code for 'abd', then we would output code 260.
+
+
+
+In general, we find the longest possible code, by starting with a one-symbol code, and then picking longer and longer codes as we get new symbols, until we finally get a symbol S that cannot be fit into any code we have. Then we output the longest code C that we found, and also add a new code D by adding symbol S to C. And we start a new code hunt, starting with S.
+
+Doing code hunts in a CodeSet-type dictionary could be very tedious. Codes aren't in sorted order (except the initial codes) and so we'd need to do repeated iterations through the dictionary as we look for longer and longer codes.
+
+What we need is a different data structure, that lets us rapidly find the code for a symbol sequence. A binary search tree is just such a data structure.
+
+Tree Review
+
+The upcoming discussion assumes you know how a binary search tree (BST) works. Now's a good time to look up BST concepts from prior coursework if you need to. The good news is that you need only to know BST basics, including adding and searching, but not deletion. Here are some concepts to be sure you have from your review:
+
+BSTs have nodes. Each node has a key and a left and right pointer to other nodes, termed its child nodes. It is their parent node.
+
+One node, the root is at the top of the tree – the ultimate parent. You diagram/visualize the tree as "hanging" from that root node, growing downward from it.
+
+A parent node P's child nodes may in turn point to other child nodes (unsurprisingly called P's grandchildren or descendants) which in turn may point to further child nodes, etc. in a potentially infinitely branching pattern.
+
+One or both of a node's child pointers may be null, which is how the BST reaches its bottom. If both pointers are null, the node is a leaf.
+
+In a BST, all descendant nodes reached from a parent P's left pointer have key values less than P's, and all descendant nodes to P's right have larger key values. In effect, the left pointer from P points to a mini-BST of children, called a subtree, all of which have keys less than P's, and its right pointer points to a mini-BST of children having keys greater than P's. P's left and right children are the subroots of their own small BSTs.
+
+Each subtree is similarly organized, with nodes having keys less than its subroot's key falling to the left of the subroot, and those with keys greater falling to the right of the subroot. The BST thus divides the key values more and more finely at each level, in a recursive pattern.
+
+You search for a key K in the BST by starting at the root. If K matches the root's key, you're done. If not, then if K is less than the root's key, any node holding K must be to the root's left, and if K is greater than the root's key, any node holding K must be to the root's right. So you go to the left or right child, and repeat the process. At each node, you either find K, or are guided to the left or right. This process guarantees finding K, if it's in the BST at all.
+
+If K is not in the tree, then you ultimately reach a node N whose left/right pointer that should have led to K is instead NULL. (Note this doesn't necessarily mean N is a leaf, since N's other pointer might be non-NULL.) You can correctly add a new node containing K by hanging a new leaf node containing K off of that pointer. Doing this ensures you'll find K by the process in point 7, should you search for it again.
+
+The search process in point 7 is fast if the tree doesn't have too many generations, or levels in it. If the tree is reasonably balanced, with most nodes having both left and right children, this wil be so. Indeed, a tree of L levels may have 2L-1 nodes in it – one of 20 levels may have over a million nodes, meaning such a balanced tree lets you find one key out of a million with 20 steps.
+
+Question 1
+Assume the initial dictionary for an LZW compress is 'a', 'b', 'c', 'd' – four keys. Insert them into an empty BST, in that order. How many levels does the BST have?
+
+Answer 1
+Four levels. Each key falls to the right of the prior key, so the tree has no two-child nodes.
+
+a
+\
+b
+\
+c
+\
+d
+
+
+If you're up on your BST terminology, you'll know that a BST with no two-child nodes is called a degenerate BST – in effect a linked list with extra unused pointers. This not a good shape for a BST since it's inefficient, but we'll change it quickly.
+
+Question 2
+Now add keys 'ab', 'bc', 'aa', and 'aba'. How many levels does the tree have now? Remember that by lexicographic order, 'ab' is greater than 'a'.
+
+Answer 2
+Still four. 'ab' is greater than 'a', but less than 'b', so it goes to 'b's left. 'bc' goes to 'c's left, 'aa' goes to 'ab's left, and 'aba' to its right
+
+a
+\
+b
+/ \
+ab c
+/ \ / \
+aa aba bc d
+
+
+Again, this is not a BST introduction. If these concepts aren't clear in review, you need to consult other resources and prior coursework until you see how we arrived at the two trees here.
+
+Special LZW Tree Issues
+
+The BST for LZW compression starts with one node for each 1-symbol code in the initial dictionary. It then adds new symbol sequences to the BST as the LZW algorithm adds them to the dictionary, so it can find any prior symbol sequence by searching the BST. But, there are two special issues to consider:
+
+Keys arrive incrementally
+First, you don't get an entire key at once; keys arrive one symbol at a time. For instance, say the key (symbol sequence) 'a' is in the BST (in the LZW dictionary). If we see the letter 'a' in the uncompressed input, we might search the BST for that key and find it, outputting the corresponding code. But, how do we know that 'ab', or even 'abc' is not also in the BST? If they are, then stopping with just 'a' violates the LZW algorithm. And we wouldn't get the letters all at once. Each one arrives in a different call of LZWCmpEncode. Indeed, in extreme case it might take hundreds of calls to get all the symbols for one key!
+
+So, one of the biggest challenges in this data structure, and one you must figure out with just a few hints from this overview, is how to take one symbol at a time, and traverse the BST incrementally. Here are the hints:
+
+1. At any point, you'll have a partial key, comprised of the symbols thus far seen, that matches at least the prefix of some BST node.
+
+2. You need to track what node in the BST you're currently at, and how much is matched.
+
+3. As each new symbol arrives, you might need to go left or right in the BST. But you might stay with the present node, too.
+
+4. When you reach a null pointer, you can deduce both what key should be used, and what key should be added.
+
+5. There are 4 fields in LZWCmp to track this process. Read their comments.
+
+Holding all the keys in open form is too space intensive
+Especially if LZW codes become long, the obvious choice of representing each code as an allocated block of symbols becomes too slow and memory expensive. Fortunately, we have a very compact way to represent a dictionary of LZW codes – a CodeSet. So, each BST node will hold a code number, and the LZW compression algorithm will include a CodeSet with contents just like those for the expansion algorithm.
+
+So, for instance, node X in the tree might have code number 260 as its data, representing symbol sequence "aa" if expanded, while node Y might have code 259 as its data, representing symbol sequence "bb". Node Y would still be greater than node X in the tree, despite having a smaller code number, because we sort by symbol sequences. But except when actually comparing symbol sequences, we'd hold just the code numbers in the nodes to save space.
+
+As you traverse the BST, you get each symbol sequence from this CodeSet, using the code number in each node. But, be sure to free each sequence once you move past its node, or you'll break the memory usage requirements. At any time, at most one or two codes should be expanded, and the rest are in the CodeSet.
+
+Freelist
+
+The need to allocate and free many tree nodes is the biggest weakness of the BST data structure. malloc and free look like quick operations since they entail only one line of code each, but in fact they can be so time consuming that in extreme cases 50% of your program's execution time may be spent in these functions alone. In our project, we'll fix that by maintaining a freelist of TreeNode structs. (We assume you understand freelists from other lectures at this point.)
+
+Question 6:
+TreeNodes are designed to be in tree structures. How would we make a simple linked list of them? What would we use for a next pointer? (Feel free to repurpose any part of the TreeNode for this; if a TreeNode is on the freelist, we don't care about its contents any more.)
+
+Answer 6:
+We need some sort of a “next” pointer to link nodes on the freelist. Might as well use, either the right or left child pointer for this. We can create a linked list of TreeNodes, then, by linking them through their right pointers.LZWCmp/Compress
+
+Copyright 2013, Clinton A Staley
+
+10/30 Improved description of CodeSink
+11/1 Some hints on tree traversal state
+Overview
+
+This lecture segment goes over the LZW Compress/LZWCmp project. Note that this lecture is an overview. The formal project specification and LZWCmp.h header file comments should be your main resource. Also, this lecture assumes you've already done the lecture on LZWExp.
+
+Concept List
+
+Progressively-traversed BST
+CodeSink
+
+Let's start with the CodeSink typedef. First, note that CodeSink is a type, not a variable. The field sink of LZWCmp is a variable of this type. sink points to a callback function, of the type inplied by CodeSink. This callback function, supplied from outside of LZWCmp, accepts compressed data in the form of a 32-bit unsigned int. (The type uint is defined as such in MyLib.h.) It also takes a configuration parameter, as in the lectures on function pointers. This is pointed to by sinkState, and may be NULL if no configuration is needed. And the callback function takes one extra parameter, a boolean done indicating that the end of compressed data has been reached. After all compressed data has been sent, LZWCmp makes one more callback with garbage code value and done set to true.
+
+Tree Data Structure
+
+LZWCmp uses a binary tree to hold the symbol sequences for known codes, starting with the initial alphabet, and adding new sequences/codes as the algorithm progresses. LZW decompression gets code numbers from the compressed data and uses the code number to get the corresponding symbol sequence. By contrast, LZW compression gets symbol sequences from the uncompressed data, and must look up their corresponding code numbers alphabetically. In decompression the "key" for lookup is the code number, but in compression, the "key" for lookup is the symbol sequence.
+
+We'll use code hunting as the term for looking up a code number based on a symbol sequence.
+
+Code Hunting
+
+Consider what code hunting takes. If, for instance, we see 'a' in the input, should we output the one-symbol code 97 for it? That depends on the next symbol, and on whether we have a code for the two-symbol sequence. If the next symbol is 'b', and we have a code 'ab' (say code 260), then we should not output code 97; we should wait and output a multisymbol code.
+
+Question 1:
+So, if we see 'ab' in the input, and if we do have a code 260 representing 'ab', does that mean we should output code 260? Why or why not?
+
+Answer 1:
+It still depends. If the next symbol after 'ab' is 'c', and if we have a code for 'abc', we should output that, or perhaps some even longer code. If instead the next symbol is, say, 'd', and we don't have a code for 'abd', then we would output code 260.
+
+
+
+In general, we find the longest possible code, by starting with a one-symbol code, and then picking longer and longer codes as we get new symbols, until we finally get a symbol S that cannot be fit into any code we have. Then we output the longest code C that we found, and also add a new code D by adding symbol S to C. And we start a new code hunt, starting with S.
+
+Doing code hunts in a CodeSet-type dictionary could be very tedious. Codes aren't in sorted order (except the initial codes) and so we'd need to do repeated iterations through the dictionary as we look for longer and longer codes.
+
+What we need is a different data structure, that lets us rapidly find the code for a symbol sequence. A binary search tree is just such a data structure.
+
+Tree Review
+
+The upcoming discussion assumes you know how a binary search tree (BST) works. Now's a good time to look up BST concepts from prior coursework if you need to. The good news is that you need only to know BST basics, including adding and searching, but not deletion. Here are some concepts to be sure you have from your review:
+
+BSTs have nodes. Each node has a key and a left and right pointer to other nodes, termed its child nodes. It is their parent node.
+
+One node, the root is at the top of the tree – the ultimate parent. You diagram/visualize the tree as "hanging" from that root node, growing downward from it.
+
+A parent node P's child nodes may in turn point to other child nodes (unsurprisingly called P's grandchildren or descendants) which in turn may point to further child nodes, etc. in a potentially infinitely branching pattern.
+
+One or both of a node's child pointers may be null, which is how the BST reaches its bottom. If both pointers are null, the node is a leaf.
+
+In a BST, all descendant nodes reached from a parent P's left pointer have key values less than P's, and all descendant nodes to P's right have larger key values. In effect, the left pointer from P points to a mini-BST of children, called a subtree, all of which have keys less than P's, and its right pointer points to a mini-BST of children having keys greater than P's. P's left and right children are the subroots of their own small BSTs.
+
+Each subtree is similarly organized, with nodes having keys less than its subroot's key falling to the left of the subroot, and those with keys greater falling to the right of the subroot. The BST thus divides the key values more and more finely at each level, in a recursive pattern.
+
+You search for a key K in the BST by starting at the root. If K matches the root's key, you're done. If not, then if K is less than the root's key, any node holding K must be to the root's left, and if K is greater than the root's key, any node holding K must be to the root's right. So you go to the left or right child, and repeat the process. At each node, you either find K, or are guided to the left or right. This process guarantees finding K, if it's in the BST at all.
+
+If K is not in the tree, then you ultimately reach a node N whose left/right pointer that should have led to K is instead NULL. (Note this doesn't necessarily mean N is a leaf, since N's other pointer might be non-NULL.) You can correctly add a new node containing K by hanging a new leaf node containing K off of that pointer. Doing this ensures you'll find K by the process in point 7, should you search for it again.
+
+The search process in point 7 is fast if the tree doesn't have too many generations, or levels in it. If the tree is reasonably balanced, with most nodes having both left and right children, this wil be so. Indeed, a tree of L levels may have 2L-1 nodes in it – one of 20 levels may have over a million nodes, meaning such a balanced tree lets you find one key out of a million with 20 steps.
+
+Question 1
+Assume the initial dictionary for an LZW compress is 'a', 'b', 'c', 'd' – four keys. Insert them into an empty BST, in that order. How many levels does the BST have?
+
+Answer 1
+Four levels. Each key falls to the right of the prior key, so the tree has no two-child nodes.
+
+a
+\
+b
+\
+c
+\
+d
+
+
+If you're up on your BST terminology, you'll know that a BST with no two-child nodes is called a degenerate BST – in effect a linked list with extra unused pointers. This not a good shape for a BST since it's inefficient, but we'll change it quickly.
+
+Question 2
+Now add keys 'ab', 'bc', 'aa', and 'aba'. How many levels does the tree have now? Remember that by lexicographic order, 'ab' is greater than 'a'.
+
+Answer 2
+Still four. 'ab' is greater than 'a', but less than 'b', so it goes to 'b's left. 'bc' goes to 'c's left, 'aa' goes to 'ab's left, and 'aba' to its right
+
+a
+\
+b
+/ \
+ab c
+/ \ / \
+aa aba bc d
+
+
+Again, this is not a BST introduction. If these concepts aren't clear in review, you need to consult other resources and prior coursework until you see how we arrived at the two trees here.
+
+Special LZW Tree Issues
+
+The BST for LZW compression starts with one node for each 1-symbol code in the initial dictionary. It then adds new symbol sequences to the BST as the LZW algorithm adds them to the dictionary, so it can find any prior symbol sequence by searching the BST. But, there are two special issues to consider:
+
+Keys arrive incrementally
+First, you don't get an entire key at once; keys arrive one symbol at a time. For instance, say the key (symbol sequence) 'a' is in the BST (in the LZW dictionary). If we see the letter 'a' in the uncompressed input, we might search the BST for that key and find it, outputting the corresponding code. But, how do we know that 'ab', or even 'abc' is not also in the BST? If they are, then stopping with just 'a' violates the LZW algorithm. And we wouldn't get the letters all at once. Each one arrives in a different call of LZWCmpEncode. Indeed, in extreme case it might take hundreds of calls to get all the symbols for one key!
+
+So, one of the biggest challenges in this data structure, and one you must figure out with just a few hints from this overview, is how to take one symbol at a time, and traverse the BST incrementally. Here are the hints:
+
+1. At any point, you'll have a partial key, comprised of the symbols thus far seen, that matches at least the prefix of some BST node.
+
+2. You need to track what node in the BST you're currently at, and how much is matched.
+
+3. As each new symbol arrives, you might need to go left or right in the BST. But you might stay with the present node, too.
+
+4. When you reach a null pointer, you can deduce both what key should be used, and what key should be added.
+
+5. There are 4 fields in LZWCmp to track this process. Read their comments.
+
+Holding all the keys in open form is too space intensive
+Especially if LZW codes become long, the obvious choice of representing each code as an allocated block of symbols becomes too slow and memory expensive. Fortunately, we have a very compact way to represent a dictionary of LZW codes – a CodeSet. So, each BST node will hold a code number, and the LZW compression algorithm will include a CodeSet with contents just like those for the expansion algorithm.
+
+So, for instance, node X in the tree might have code number 260 as its data, representing symbol sequence "aa" if expanded, while node Y might have code 259 as its data, representing symbol sequence "bb". Node Y would still be greater than node X in the tree, despite having a smaller code number, because we sort by symbol sequences. But except when actually comparing symbol sequences, we'd hold just the code numbers in the nodes to save space.
+
+As you traverse the BST, you get each symbol sequence from this CodeSet, using the code number in each node. But, be sure to free each sequence once you move past its node, or you'll break the memory usage requirements. At any time, at most one or two codes should be expanded, and the rest are in the CodeSet.
+
+Freelist
+
+The need to allocate and free many tree nodes is the biggest weakness of the BST data structure. malloc and free look like quick operations since they entail only one line of code each, but in fact they can be so time consuming that in extreme cases 50% of your program's execution time may be spent in these functions alone. In our project, we'll fix that by maintaining a freelist of TreeNode structs. (We assume you understand freelists from other lectures at this point.)
+
+Question 6:
+TreeNodes are designed to be in tree structures. How would we make a simple linked list of them? What would we use for a next pointer? (Feel free to repurpose any part of the TreeNode for this; if a TreeNode is on the freelist, we don't care about its contents any more.)
+
+Answer 6:
+We need some sort of a “next” pointer to link nodes on the freelist. Might as well use, either the right or left child pointer for this. We can create a linked list of TreeNodes, then, by linking them through their right pointers.LZWCmp/Compress
+
+Copyright 2013, Clinton A Staley
+
+10/30 Improved description of CodeSink
+11/1 Some hints on tree traversal state
+Overview
+
+This lecture segment goes over the LZW Compress/LZWCmp project. Note that this lecture is an overview. The formal project specification and LZWCmp.h header file comments should be your main resource. Also, this lecture assumes you've already done the lecture on LZWExp.
+
+Concept List
+
+Progressively-traversed BST
+CodeSink
+
+Let's start with the CodeSink typedef. First, note that CodeSink is a type, not a variable. The field sink of LZWCmp is a variable of this type. sink points to a callback function, of the type inplied by CodeSink. This callback function, supplied from outside of LZWCmp, accepts compressed data in the form of a 32-bit unsigned int. (The type uint is defined as such in MyLib.h.) It also takes a configuration parameter, as in the lectures on function pointers. This is pointed to by sinkState, and may be NULL if no configuration is needed. And the callback function takes one extra parameter, a boolean done indicating that the end of compressed data has been reached. After all compressed data has been sent, LZWCmp makes one more callback with garbage code value and done set to true.
+
+Tree Data Structure
+
+LZWCmp uses a binary tree to hold the symbol sequences for known codes, starting with the initial alphabet, and adding new sequences/codes as the algorithm progresses. LZW decompression gets code numbers from the compressed data and uses the code number to get the corresponding symbol sequence. By contrast, LZW compression gets symbol sequences from the uncompressed data, and must look up their corresponding code numbers alphabetically. In decompression the "key" for lookup is the code number, but in compression, the "key" for lookup is the symbol sequence.
+
+We'll use code hunting as the term for looking up a code number based on a symbol sequence.
+
+Code Hunting
+
+Consider what code hunting takes. If, for instance, we see 'a' in the input, should we output the one-symbol code 97 for it? That depends on the next symbol, and on whether we have a code for the two-symbol sequence. If the next symbol is 'b', and we have a code 'ab' (say code 260), then we should not output code 97; we should wait and output a multisymbol code.
+
+Question 1:
+So, if we see 'ab' in the input, and if we do have a code 260 representing 'ab', does that mean we should output code 260? Why or why not?
+
+Answer 1:
+It still depends. If the next symbol after 'ab' is 'c', and if we have a code for 'abc', we should output that, or perhaps some even longer code. If instead the next symbol is, say, 'd', and we don't have a code for 'abd', then we would output code 260.
+
+
+
+In general, we find the longest possible code, by starting with a one-symbol code, and then picking longer and longer codes as we get new symbols, until we finally get a symbol S that cannot be fit into any code we have. Then we output the longest code C that we found, and also add a new code D by adding symbol S to C. And we start a new code hunt, starting with S.
+
+Doing code hunts in a CodeSet-type dictionary could be very tedious. Codes aren't in sorted order (except the initial codes) and so we'd need to do repeated iterations through the dictionary as we look for longer and longer codes.
+
+What we need is a different data structure, that lets us rapidly find the code for a symbol sequence. A binary search tree is just such a data structure.
+
+Tree Review
+
+The upcoming discussion assumes you know how a binary search tree (BST) works. Now's a good time to look up BST concepts from prior coursework if you need to. The good news is that you need only to know BST basics, including adding and searching, but not deletion. Here are some concepts to be sure you have from your review:
+
+BSTs have nodes. Each node has a key and a left and right pointer to other nodes, termed its child nodes. It is their parent node.
+
+One node, the root is at the top of the tree – the ultimate parent. You diagram/visualize the tree as "hanging" from that root node, growing downward from it.
+
+A parent node P's child nodes may in turn point to other child nodes (unsurprisingly called P's grandchildren or descendants) which in turn may point to further child nodes, etc. in a potentially infinitely branching pattern.
+
+One or both of a node's child pointers may be null, which is how the BST reaches its bottom. If both pointers are null, the node is a leaf.
+
+In a BST, all descendant nodes reached from a parent P's left pointer have key values less than P's, and all descendant nodes to P's right have larger key values. In effect, the left pointer from P points to a mini-BST of children, called a subtree, all of which have keys less than P's, and its right pointer points to a mini-BST of children having keys greater than P's. P's left and right children are the subroots of their own small BSTs.
+
+Each subtree is similarly organized, with nodes having keys less than its subroot's key falling to the left of the subroot, and those with keys greater falling to the right of the subroot. The BST thus divides the key values more and more finely at each level, in a recursive pattern.
+
+You search for a key K in the BST by starting at the root. If K matches the root's key, you're done. If not, then if K is less than the root's key, any node holding K must be to the root's left, and if K is greater than the root's key, any node holding K must be to the root's right. So you go to the left or right child, and repeat the process. At each node, you either find K, or are guided to the left or right. This process guarantees finding K, if it's in the BST at all.
+
+If K is not in the tree, then you ultimately reach a node N whose left/right pointer that should have led to K is instead NULL. (Note this doesn't necessarily mean N is a leaf, since N's other pointer might be non-NULL.) You can correctly add a new node containing K by hanging a new leaf node containing K off of that pointer. Doing this ensures you'll find K by the process in point 7, should you search for it again.
+
+The search process in point 7 is fast if the tree doesn't have too many generations, or levels in it. If the tree is reasonably balanced, with most nodes having both left and right children, this wil be so. Indeed, a tree of L levels may have 2L-1 nodes in it – one of 20 levels may have over a million nodes, meaning such a balanced tree lets you find one key out of a million with 20 steps.
+
+Question 1
+Assume the initial dictionary for an LZW compress is 'a', 'b', 'c', 'd' – four keys. Insert them into an empty BST, in that order. How many levels does the BST have?
+
+Answer 1
+Four levels. Each key falls to the right of the prior key, so the tree has no two-child nodes.
+
+a
+\
+b
+\
+c
+\
+d
+
+
+If you're up on your BST terminology, you'll know that a BST with no two-child nodes is called a degenerate BST – in effect a linked list with extra unused pointers. This not a good shape for a BST since it's inefficient, but we'll change it quickly.
+
+Question 2
+Now add keys 'ab', 'bc', 'aa', and 'aba'. How many levels does the tree have now? Remember that by lexicographic order, 'ab' is greater than 'a'.
+
+Answer 2
+Still four. 'ab' is greater than 'a', but less than 'b', so it goes to 'b's left. 'bc' goes to 'c's left, 'aa' goes to 'ab's left, and 'aba' to its right
+
+a
+\
+b
+/ \
+ab c
+/ \ / \
+aa aba bc d
+
+
+Again, this is not a BST introduction. If these concepts aren't clear in review, you need to consult other resources and prior coursework until you see how we arrived at the two trees here.
+
+Special LZW Tree Issues
+
+The BST for LZW compression starts with one node for each 1-symbol code in the initial dictionary. It then adds new symbol sequences to the BST as the LZW algorithm adds them to the dictionary, so it can find any prior symbol sequence by searching the BST. But, there are two special issues to consider:
+
+Keys arrive incrementally
+First, you don't get an entire key at once; keys arrive one symbol at a time. For instance, say the key (symbol sequence) 'a' is in the BST (in the LZW dictionary). If we see the letter 'a' in the uncompressed input, we might search the BST for that key and find it, outputting the corresponding code. But, how do we know that 'ab', or even 'abc' is not also in the BST? If they are, then stopping with just 'a' violates the LZW algorithm. And we wouldn't get the letters all at once. Each one arrives in a different call of LZWCmpEncode. Indeed, in extreme case it might take hundreds of calls to get all the symbols for one key!
+
+So, one of the biggest challenges in this data structure, and one you must figure out with just a few hints from this overview, is how to take one symbol at a time, and traverse the BST incrementally. Here are the hints:
+
+1. At any point, you'll have a partial key, comprised of the symbols thus far seen, that matches at least the prefix of some BST node.
+
+2. You need to track what node in the BST you're currently at, and how much is matched.
+
+3. As each new symbol arrives, you might need to go left or right in the BST. But you might stay with the present node, too.
+
+4. When you reach a null pointer, you can deduce both what key should be used, and what key should be added.
+
+5. There are 4 fields in LZWCmp to track this process. Read their comments.
+
+Holding all the keys in open form is too space intensive
+Especially if LZW codes become long, the obvious choice of representing each code as an allocated block of symbols becomes too slow and memory expensive. Fortunately, we have a very compact way to represent a dictionary of LZW codes – a CodeSet. So, each BST node will hold a code number, and the LZW compression algorithm will include a CodeSet with contents just like those for the expansion algorithm.
+
+So, for instance, node X in the tree might have code number 260 as its data, representing symbol sequence "aa" if expanded, while node Y might have code 259 as its data, representing symbol sequence "bb". Node Y would still be greater than node X in the tree, despite having a smaller code number, because we sort by symbol sequences. But except when actually comparing symbol sequences, we'd hold just the code numbers in the nodes to save space.
+
+As you traverse the BST, you get each symbol sequence from this CodeSet, using the code number in each node. But, be sure to free each sequence once you move past its node, or you'll break the memory usage requirements. At any time, at most one or two codes should be expanded, and the rest are in the CodeSet.
+
+Freelist
+
+The need to allocate and free many tree nodes is the biggest weakness of the BST data structure. malloc and free look like quick operations since they entail only one line of code each, but in fact they can be so time consuming that in extreme cases 50% of your program's execution time may be spent in these functions alone. In our project, we'll fix that by maintaining a freelist of TreeNode structs. (We assume you understand freelists from other lectures at this point.)
+
+Question 6:
+TreeNodes are designed to be in tree structures. How would we make a simple linked list of them? What would we use for a next pointer? (Feel free to repurpose any part of the TreeNode for this; if a TreeNode is on the freelist, we don't care about its contents any more.)
+
+Answer 6:
+We need some sort of a “next” pointer to link nodes on the freelist. Might as well use, either the right or left child pointer for this. We can create a linked list of TreeNodes, then, by linking them through their right pointers.LZWCmp/Compress
+
+Copyright 2013, Clinton A Staley
+
+10/30 Improved description of CodeSink
+11/1 Some hints on tree traversal state
+Overview
+
+This lecture segment goes over the LZW Compress/LZWCmp project. Note that this lecture is an overview. The formal project specification and LZWCmp.h header file comments should be your main resource. Also, this lecture assumes you've already done the lecture on LZWExp.
+
+Concept List
+
+Progressively-traversed BST
+CodeSink
+
+Let's start with the CodeSink typedef. First, note that CodeSink is a type, not a variable. The field sink of LZWCmp is a variable of this type. sink points to a callback function, of the type inplied by CodeSink. This callback function, supplied from outside of LZWCmp, accepts compressed data in the form of a 32-bit unsigned int. (The type uint is defined as such in MyLib.h.) It also takes a configuration parameter, as in the lectures on function pointers. This is pointed to by sinkState, and may be NULL if no configuration is needed. And the callback function takes one extra parameter, a boolean done indicating that the end of compressed data has been reached. After all compressed data has been sent, LZWCmp makes one more callback with garbage code value and done set to true.
+
+Tree Data Structure
+
+LZWCmp uses a binary tree to hold the symbol sequences for known codes, starting with the initial alphabet, and adding new sequences/codes as the algorithm progresses. LZW decompression gets code numbers from the compressed data and uses the code number to get the corresponding symbol sequence. By contrast, LZW compression gets symbol sequences from the uncompressed data, and must look up their corresponding code numbers alphabetically. In decompression the "key" for lookup is the code number, but in compression, the "key" for lookup is the symbol sequence.
+
+We'll use code hunting as the term for looking up a code number based on a symbol sequence.
+
+Code Hunting
+
+Consider what code hunting takes. If, for instance, we see 'a' in the input, should we output the one-symbol code 97 for it? That depends on the next symbol, and on whether we have a code for the two-symbol sequence. If the next symbol is 'b', and we have a code 'ab' (say code 260), then we should not output code 97; we should wait and output a multisymbol code.
+
+Question 1:
+So, if we see 'ab' in the input, and if we do have a code 260 representing 'ab', does that mean we should output code 260? Why or why not?
+
+Answer 1:
+It still depends. If the next symbol after 'ab' is 'c', and if we have a code for 'abc', we should output that, or perhaps some even longer code. If instead the next symbol is, say, 'd', and we don't have a code for 'abd', then we would output code 260.
+
+
+
+In general, we find the longest possible code, by starting with a one-symbol code, and then picking longer and longer codes as we get new symbols, until we finally get a symbol S that cannot be fit into any code we have. Then we output the longest code C that we found, and also add a new code D by adding symbol S to C. And we start a new code hunt, starting with S.
+
+Doing code hunts in a CodeSet-type dictionary could be very tedious. Codes aren't in sorted order (except the initial codes) and so we'd need to do repeated iterations through the dictionary as we look for longer and longer codes.
+
+What we need is a different data structure, that lets us rapidly find the code for a symbol sequence. A binary search tree is just such a data structure.
+
+Tree Review
+
+The upcoming discussion assumes you know how a binary search tree (BST) works. Now's a good time to look up BST concepts from prior coursework if you need to. The good news is that you need only to know BST basics, including adding and searching, but not deletion. Here are some concepts to be sure you have from your review:
+
+BSTs have nodes. Each node has a key and a left and right pointer to other nodes, termed its child nodes. It is their parent node.
+
+One node, the root is at the top of the tree – the ultimate parent. You diagram/visualize the tree as "hanging" from that root node, growing downward from it.
+
+A parent node P's child nodes may in turn point to other child nodes (unsurprisingly called P's grandchildren or descendants) which in turn may point to further child nodes, etc. in a potentially infinitely branching pattern.
+
+One or both of a node's child pointers may be null, which is how the BST reaches its bottom. If both pointers are null, the node is a leaf.
+
+In a BST, all descendant nodes reached from a parent P's left pointer have key values less than P's, and all descendant nodes to P's right have larger key values. In effect, the left pointer from P points to a mini-BST of children, called a subtree, all of which have keys less than P's, and its right pointer points to a mini-BST of children having keys greater than P's. P's left and right children are the subroots of their own small BSTs.
+
+Each subtree is similarly organized, with nodes having keys less than its subroot's key falling to the left of the subroot, and those with keys greater falling to the right of the subroot. The BST thus divides the key values more and more finely at each level, in a recursive pattern.
+
+You search for a key K in the BST by starting at the root. If K matches the root's key, you're done. If not, then if K is less than the root's key, any node holding K must be to the root's left, and if K is greater than the root's key, any node holding K must be to the root's right. So you go to the left or right child, and repeat the process. At each node, you either find K, or are guided to the left or right. This process guarantees finding K, if it's in the BST at all.
+
+If K is not in the tree, then you ultimately reach a node N whose left/right pointer that should have led to K is instead NULL. (Note this doesn't necessarily mean N is a leaf, since N's other pointer might be non-NULL.) You can correctly add a new node containing K by hanging a new leaf node containing K off of that pointer. Doing this ensures you'll find K by the process in point 7, should you search for it again.
+
+The search process in point 7 is fast if the tree doesn't have too many generations, or levels in it. If the tree is reasonably balanced, with most nodes having both left and right children, this wil be so. Indeed, a tree of L levels may have 2L-1 nodes in it – one of 20 levels may have over a million nodes, meaning such a balanced tree lets you find one key out of a million with 20 steps.
+
+Question 1
+Assume the initial dictionary for an LZW compress is 'a', 'b', 'c', 'd' – four keys. Insert them into an empty BST, in that order. How many levels does the BST have?
+
+Answer 1
+Four levels. Each key falls to the right of the prior key, so the tree has no two-child nodes.
+
+a
+\
+b
+\
+c
+\
+d
+
+
+If you're up on your BST terminology, you'll know that a BST with no two-child nodes is called a degenerate BST – in effect a linked list with extra unused pointers. This not a good shape for a BST since it's inefficient, but we'll change it quickly.
+
+Question 2
+Now add keys 'ab', 'bc', 'aa', and 'aba'. How many levels does the tree have now? Remember that by lexicographic order, 'ab' is greater than 'a'.
+
+Answer 2
+Still four. 'ab' is greater than 'a', but less than 'b', so it goes to 'b's left. 'bc' goes to 'c's left, 'aa' goes to 'ab's left, and 'aba' to its right
+
+a
+\
+b
+/ \
+ab c
+/ \ / \
+aa aba bc d
+
+
+Again, this is not a BST introduction. If these concepts aren't clear in review, you need to consult other resources and prior coursework until you see how we arrived at the two trees here.
+
+Special LZW Tree Issues
+
+The BST for LZW compression starts with one node for each 1-symbol code in the initial dictionary. It then adds new symbol sequences to the BST as the LZW algorithm adds them to the dictionary, so it can find any prior symbol sequence by searching the BST. But, there are two special issues to consider:
+
+Keys arrive incrementally
+First, you don't get an entire key at once; keys arrive one symbol at a time. For instance, say the key (symbol sequence) 'a' is in the BST (in the LZW dictionary). If we see the letter 'a' in the uncompressed input, we might search the BST for that key and find it, outputting the corresponding code. But, how do we know that 'ab', or even 'abc' is not also in the BST? If they are, then stopping with just 'a' violates the LZW algorithm. And we wouldn't get the letters all at once. Each one arrives in a different call of LZWCmpEncode. Indeed, in extreme case it might take hundreds of calls to get all the symbols for one key!
+
+So, one of the biggest challenges in this data structure, and one you must figure out with just a few hints from this overview, is how to take one symbol at a time, and traverse the BST incrementally. Here are the hints:
+
+1. At any point, you'll have a partial key, comprised of the symbols thus far seen, that matches at least the prefix of some BST node.
+
+2. You need to track what node in the BST you're currently at, and how much is matched.
+
+3. As each new symbol arrives, you might need to go left or right in the BST. But you might stay with the present node, too.
+
+4. When you reach a null pointer, you can deduce both what key should be used, and what key should be added.
+
+5. There are 4 fields in LZWCmp to track this process. Read their comments.
+
+Holding all the keys in open form is too space intensive
+Especially if LZW codes become long, the obvious choice of representing each code as an allocated block of symbols becomes too slow and memory expensive. Fortunately, we have a very compact way to represent a dictionary of LZW codes – a CodeSet. So, each BST node will hold a code number, and the LZW compression algorithm will include a CodeSet with contents just like those for the expansion algorithm.
+
+So, for instance, node X in the tree might have code number 260 as its data, representing symbol sequence "aa" if expanded, while node Y might have code 259 as its data, representing symbol sequence "bb". Node Y would still be greater than node X in the tree, despite having a smaller code number, because we sort by symbol sequences. But except when actually comparing symbol sequences, we'd hold just the code numbers in the nodes to save space.
+
+As you traverse the BST, you get each symbol sequence from this CodeSet, using the code number in each node. But, be sure to free each sequence once you move past its node, or you'll break the memory usage requirements. At any time, at most one or two codes should be expanded, and the rest are in the CodeSet.
+
+Freelist
+
+The need to allocate and free many tree nodes is the biggest weakness of the BST data structure. malloc and free look like quick operations since they entail only one line of code each, but in fact they can be so time consuming that in extreme cases 50% of your program's execution time may be spent in these functions alone. In our project, we'll fix that by maintaining a freelist of TreeNode structs. (We assume you understand freelists from other lectures at this point.)
+
+Question 6:
+TreeNodes are designed to be in tree structures. How would we make a simple linked list of them? What would we use for a next pointer? (Feel free to repurpose any part of the TreeNode for this; if a TreeNode is on the freelist, we don't care about its contents any more.)
+
+Answer 6:
+We need some sort of a “next” pointer to link nodes on the freelist. Might as well use, either the right or left child pointer for this. We can create a linked list of TreeNodes, then, by linking them through their right pointers.LZWCmp/Compress
+
+Copyright 2013, Clinton A Staley
+
+10/30 Improved description of CodeSink
+11/1 Some hints on tree traversal state
+Overview
+
+This lecture segment goes over the LZW Compress/LZWCmp project. Note that this lecture is an overview. The formal project specification and LZWCmp.h header file comments should be your main resource. Also, this lecture assumes you've already done the lecture on LZWExp.
+
+Concept List
+
+Progressively-traversed BST
+CodeSink
+
+Let's start with the CodeSink typedef. First, note that CodeSink is a type, not a variable. The field sink of LZWCmp is a variable of this type. sink points to a callback function, of the type inplied by CodeSink. This callback function, supplied from outside of LZWCmp, accepts compressed data in the form of a 32-bit unsigned int. (The type uint is defined as such in MyLib.h.) It also takes a configuration parameter, as in the lectures on function pointers. This is pointed to by sinkState, and may be NULL if no configuration is needed. And the callback function takes one extra parameter, a boolean done indicating that the end of compressed data has been reached. After all compressed data has been sent, LZWCmp makes one more callback with garbage code value and done set to true.
+
+Tree Data Structure
+
+LZWCmp uses a binary tree to hold the symbol sequences for known codes, starting with the initial alphabet, and adding new sequences/codes as the algorithm progresses. LZW decompression gets code numbers from the compressed data and uses the code number to get the corresponding symbol sequence. By contrast, LZW compression gets symbol sequences from the uncompressed data, and must look up their corresponding code numbers alphabetically. In decompression the "key" for lookup is the code number, but in compression, the "key" for lookup is the symbol sequence.
+
+We'll use code hunting as the term for looking up a code number based on a symbol sequence.
+
+Code Hunting
+
+Consider what code hunting takes. If, for instance, we see 'a' in the input, should we output the one-symbol code 97 for it? That depends on the next symbol, and on whether we have a code for the two-symbol sequence. If the next symbol is 'b', and we have a code 'ab' (say code 260), then we should not output code 97; we should wait and output a multisymbol code.
+
+Question 1:
+So, if we see 'ab' in the input, and if we do have a code 260 representing 'ab', does that mean we should output code 260? Why or why not?
+
+Answer 1:
+It still depends. If the next symbol after 'ab' is 'c', and if we have a code for 'abc', we should output that, or perhaps some even longer code. If instead the next symbol is, say, 'd', and we don't have a code for 'abd', then we would output code 260.
+
+
+
+In general, we find the longest possible code, by starting with a one-symbol code, and then picking longer and longer codes as we get new symbols, until we finally get a symbol S that cannot be fit into any code we have. Then we output the longest code C that we found, and also add a new code D by adding symbol S to C. And we start a new code hunt, starting with S.
+
+Doing code hunts in a CodeSet-type dictionary could be very tedious. Codes aren't in sorted order (except the initial codes) and so we'd need to do repeated iterations through the dictionary as we look for longer and longer codes.
+
+What we need is a different data structure, that lets us rapidly find the code for a symbol sequence. A binary search tree is just such a data structure.
+
+Tree Review
+
+The upcoming discussion assumes you know how a binary search tree (BST) works. Now's a good time to look up BST concepts from prior coursework if you need to. The good news is that you need only to know BST basics, including adding and searching, but not deletion. Here are some concepts to be sure you have from your review:
+
+BSTs have nodes. Each node has a key and a left and right pointer to other nodes, termed its child nodes. It is their parent node.
+
+One node, the root is at the top of the tree – the ultimate parent. You diagram/visualize the tree as "hanging" from that root node, growing downward from it.
+
+A parent node P's child nodes may in turn point to other child nodes (unsurprisingly called P's grandchildren or descendants) which in turn may point to further child nodes, etc. in a potentially infinitely branching pattern.
+
+One or both of a node's child pointers may be null, which is how the BST reaches its bottom. If both pointers are null, the node is a leaf.
+
+In a BST, all descendant nodes reached from a parent P's left pointer have key values less than P's, and all descendant nodes to P's right have larger key values. In effect, the left pointer from P points to a mini-BST of children, called a subtree, all of which have keys less than P's, and its right pointer points to a mini-BST of children having keys greater than P's. P's left and right children are the subroots of their own small BSTs.
+
+Each subtree is similarly organized, with nodes having keys less than its subroot's key falling to the left of the subroot, and those with keys greater falling to the right of the subroot. The BST thus divides the key values more and more finely at each level, in a recursive pattern.
+
+You search for a key K in the BST by starting at the root. If K matches the root's key, you're done. If not, then if K is less than the root's key, any node holding K must be to the root's left, and if K is greater than the root's key, any node holding K must be to the root's right. So you go to the left or right child, and repeat the process. At each node, you either find K, or are guided to the left or right. This process guarantees finding K, if it's in the BST at all.
+
+If K is not in the tree, then you ultimately reach a node N whose left/right pointer that should have led to K is instead NULL. (Note this doesn't necessarily mean N is a leaf, since N's other pointer might be non-NULL.) You can correctly add a new node containing K by hanging a new leaf node containing K off of that pointer. Doing this ensures you'll find K by the process in point 7, should you search for it again.
+
+The search process in point 7 is fast if the tree doesn't have too many generations, or levels in it. If the tree is reasonably balanced, with most nodes having both left and right children, this wil be so. Indeed, a tree of L levels may have 2L-1 nodes in it – one of 20 levels may have over a million nodes, meaning such a balanced tree lets you find one key out of a million with 20 steps.
+
+Question 1
+Assume the initial dictionary for an LZW compress is 'a', 'b', 'c', 'd' – four keys. Insert them into an empty BST, in that order. How many levels does the BST have?
+
+Answer 1
+Four levels. Each key falls to the right of the prior key, so the tree has no two-child nodes.
+
+a
+\
+b
+\
+c
+\
+d
+
+
+If you're up on your BST terminology, you'll know that a BST with no two-child nodes is called a degenerate BST – in effect a linked list with extra unused pointers. This not a good shape for a BST since it's inefficient, but we'll change it quickly.
+
+Question 2
+Now add keys 'ab', 'bc', 'aa', and 'aba'. How many levels does the tree have now? Remember that by lexicographic order, 'ab' is greater than 'a'.
+
+Answer 2
+Still four. 'ab' is greater than 'a', but less than 'b', so it goes to 'b's left. 'bc' goes to 'c's left, 'aa' goes to 'ab's left, and 'aba' to its right
+
+a
+\
+b
+/ \
+ab c
+/ \ / \
+aa aba bc d
+
+
+Again, this is not a BST introduction. If these concepts aren't clear in review, you need to consult other resources and prior coursework until you see how we arrived at the two trees here.
+
+Special LZW Tree Issues
+
+The BST for LZW compression starts with one node for each 1-symbol code in the initial dictionary. It then adds new symbol sequences to the BST as the LZW algorithm adds them to the dictionary, so it can find any prior symbol sequence by searching the BST. But, there are two special issues to consider:
+
+Keys arrive incrementally
+First, you don't get an entire key at once; keys arrive one symbol at a time. For instance, say the key (symbol sequence) 'a' is in the BST (in the LZW dictionary). If we see the letter 'a' in the uncompressed input, we might search the BST for that key and find it, outputting the corresponding code. But, how do we know that 'ab', or even 'abc' is not also in the BST? If they are, then stopping with just 'a' violates the LZW algorithm. And we wouldn't get the letters all at once. Each one arrives in a different call of LZWCmpEncode. Indeed, in extreme case it might take hundreds of calls to get all the symbols for one key!
+
+So, one of the biggest challenges in this data structure, and one you must figure out with just a few hints from this overview, is how to take one symbol at a time, and traverse the BST incrementally. Here are the hints:
+
+1. At any point, you'll have a partial key, comprised of the symbols thus far seen, that matches at least the prefix of some BST node.
+
+2. You need to track what node in the BST you're currently at, and how much is matched.
+
+3. As each new symbol arrives, you might need to go left or right in the BST. But you might stay with the present node, too.
+
+4. When you reach a null pointer, you can deduce both what key should be used, and what key should be added.
+
+5. There are 4 fields in LZWCmp to track this process. Read their comments.
+
+Holding all the keys in open form is too space intensive
+Especially if LZW codes become long, the obvious choice of representing each code as an allocated block of symbols becomes too slow and memory expensive. Fortunately, we have a very compact way to represent a dictionary of LZW codes – a CodeSet. So, each BST node will hold a code number, and the LZW compression algorithm will include a CodeSet with contents just like those for the expansion algorithm.
+
+So, for instance, node X in the tree might have code number 260 as its data, representing symbol sequence "aa" if expanded, while node Y might have code 259 as its data, representing symbol sequence "bb". Node Y would still be greater than node X in the tree, despite having a smaller code number, because we sort by symbol sequences. But except when actually comparing symbol sequences, we'd hold just the code numbers in the nodes to save space.
+
+As you traverse the BST, you get each symbol sequence from this CodeSet, using the code number in each node. But, be sure to free each sequence once you move past its node, or you'll break the memory usage requirements. At any time, at most one or two codes should be expanded, and the rest are in the CodeSet.
+
+Freelist
+
+The need to allocate and free many tree nodes is the biggest weakness of the BST data structure. malloc and free look like quick operations since they entail only one line of code each, but in fact they can be so time consuming that in extreme cases 50% of your program's execution time may be spent in these functions alone. In our project, we'll fix that by maintaining a freelist of TreeNode structs. (We assume you understand freelists from other lectures at this point.)
+
+Question 6:
+TreeNodes are designed to be in tree structures. How would we make a simple linked list of them? What would we use for a next pointer? (Feel free to repurpose any part of the TreeNode for this; if a TreeNode is on the freelist, we don't care about its contents any more.)
+
+Answer 6:
+LZWCmp/Compress
+
+Copyright 2013, Clinton A Staley
+
+10/30 Improved description of CodeSink
+11/1 Some hints on tree traversal state
+Overview
+
+This lecture segment goes over the LZW Compress/LZWCmp project. Note that this lecture is an overview. The formal project specification and LZWCmp.h header file comments should be your main resource. Also, this lecture assumes you've already done the lecture on LZWExp.
+
+Concept List
+
+Progressively-traversed BST
+CodeSink
+
+Let's start with the CodeSink typedef. First, note that CodeSink is a type, not a variable. The field sink of LZWCmp is a variable of this type. sink points to a callback function, of the type inplied by CodeSink. This callback function, supplied from outside of LZWCmp, accepts compressed data in the form of a 32-bit unsigned int. (The type uint is defined as such in MyLib.h.) It also takes a configuration parameter, as in the lectures on function pointers. This is pointed to by sinkState, and may be NULL if no configuration is needed. And the callback function takes one extra parameter, a boolean done indicating that the end of compressed data has been reached. After all compressed data has been sent, LZWCmp makes one more callback with garbage code value and done set to true.
+
+Tree Data Structure
+
+LZWCmp uses a binary tree to hold the symbol sequences for known codes, starting with the initial alphabet, and adding new sequences/codes as the algorithm progresses. LZW decompression gets code numbers from the compressed data and uses the code number to get the corresponding symbol sequence. By contrast, LZW compression gets symbol sequences from the uncompressed data, and must look up their corresponding code numbers alphabetically. In decompression the "key" for lookup is the code number, but in compression, the "key" for lookup is the symbol sequence.
+
+We'll use code hunting as the term for looking up a code number based on a symbol sequence.
+
+Code Hunting
+
+Consider what code hunting takes. If, for instance, we see 'a' in the input, should we output the one-symbol code 97 for it? That depends on the next symbol, and on whether we have a code for the two-symbol sequence. If the next symbol is 'b', and we have a code 'ab' (say code 260), then we should not output code 97; we should wait and output a multisymbol code.
+
+Question 1:
+So, if we see 'ab' in the input, and if we do have a code 260 representing 'ab', does that mean we should output code 260? Why or why not?
+
+Answer 1:
+It still depends. If the next symbol after 'ab' is 'c', and if we have a code for 'abc', we should output that, or perhaps some even longer code. If instead the next symbol is, say, 'd', and we don't have a code for 'abd', then we would output code 260.
+
+
+
+In general, we find the longest possible code, by starting with a one-symbol code, and then picking longer and longer codes as we get new symbols, until we finally get a symbol S that cannot be fit into any code we have. Then we output the longest code C that we found, and also add a new code D by adding symbol S to C. And we start a new code hunt, starting with S.
+
+Doing code hunts in a CodeSet-type dictionary could be very tedious. Codes aren't in sorted order (except the initial codes) and so we'd need to do repeated iterations through the dictionary as we look for longer and longer codes.
+
+What we need is a different data structure, that lets us rapidly find the code for a symbol sequence. A binary search tree is just such a data structure.
+
+Tree Review
+
+The upcoming discussion assumes you know how a binary search tree (BST) works. Now's a good time to look up BST concepts from prior coursework if you need to. The good news is that you need only to know BST basics, including adding and searching, but not deletion. Here are some concepts to be sure you have from your review:
+
+BSTs have nodes. Each node has a key and a left and right pointer to other nodes, termed its child nodes. It is their parent node.
+
+One node, the root is at the top of the tree – the ultimate parent. You diagram/visualize the tree as "hanging" from that root node, growing downward from it.
+
+A parent node P's child nodes may in turn point to other child nodes (unsurprisingly called P's grandchildren or descendants) which in turn may point to further child nodes, etc. in a potentially infinitely branching pattern.
+
+One or both of a node's child pointers may be null, which is how the BST reaches its bottom. If both pointers are null, the node is a leaf.
+
+In a BST, all descendant nodes reached from a parent P's left pointer have key values less than P's, and all descendant nodes to P's right have larger key values. In effect, the left pointer from P points to a mini-BST of children, called a subtree, all of which have keys less than P's, and its right pointer points to a mini-BST of children having keys greater than P's. P's left and right children are the subroots of their own small BSTs.
+
+Each subtree is similarly organized, with nodes having keys less than its subroot's key falling to the left of the subroot, and those with keys greater falling to the right of the subroot. The BST thus divides the key values more and more finely at each level, in a recursive pattern.
+
+You search for a key K in the BST by starting at the root. If K matches the root's key, you're done. If not, then if K is less than the root's key, any node holding K must be to the root's left, and if K is greater than the root's key, any node holding K must be to the root's right. So you go to the left or right child, and repeat the process. At each node, you either find K, or are guided to the left or right. This process guarantees finding K, if it's in the BST at all.
+
+If K is not in the tree, then you ultimately reach a node N whose left/right pointer that should have led to K is instead NULL. (Note this doesn't necessarily mean N is a leaf, since N's other pointer might be non-NULL.) You can correctly add a new node containing K by hanging a new leaf node containing K off of that pointer. Doing this ensures you'll find K by the process in point 7, should you search for it again.
+
+The search process in point 7 is fast if the tree doesn't have too many generations, or levels in it. If the tree is reasonably balanced, with most nodes having both left and right children, this wil be so. Indeed, a tree of L levels may have 2L-1 nodes in it – one of 20 levels may have over a million nodes, meaning such a balanced tree lets you find one key out of a million with 20 steps.
+
+Question 1
+Assume the initial dictionary for an LZW compress is 'a', 'b', 'c', 'd' – four keys. Insert them into an empty BST, in that order. How many levels does the BST have?
+
+Answer 1
+Four levels. Each key falls to the right of the prior key, so the tree has no two-child nodes.
+
+a
+\
+b
+\
+c
+\
+d
+
+
+If you're up on your BST terminology, you'll know that a BST with no two-child nodes is called a degenerate BST – in effect a linked list with extra unused pointers. This not a good shape for a BST since it's inefficient, but we'll change it quickly.
+
+Question 2
+Now add keys 'ab', 'bc', 'aa', and 'aba'. How many levels does the tree have now? Remember that by lexicographic order, 'ab' is greater than 'a'.
+
+Answer 2
+Still four. 'ab' is greater than 'a', but less than 'b', so it goes to 'b's left. 'bc' goes to 'c's left, 'aa' goes to 'ab's left, and 'aba' to its right
+
+a
+\
+b
+/ \
+ab c
+/ \ / \
+aa aba bc d
+
+
+Again, this is not a BST introduction. If these concepts aren't clear in review, you need to consult other resources and prior coursework until you see how we arrived at the two trees here.
+
+Special LZW Tree Issues
+
+The BST for LZW compression starts with one node for each 1-symbol code in the initial dictionary. It then adds new symbol sequences to the BST as the LZW algorithm adds them to the dictionary, so it can find any prior symbol sequence by searching the BST. But, there are two special issues to consider:
+
+Keys arrive incrementally
+First, you don't get an entire key at once; keys arrive one symbol at a time. For instance, say the key (symbol sequence) 'a' is in the BST (in the LZW dictionary). If we see the letter 'a' in the uncompressed input, we might search the BST for that key and find it, outputting the corresponding code. But, how do we know that 'ab', or even 'abc' is not also in the BST? If they are, then stopping with just 'a' violates the LZW algorithm. And we wouldn't get the letters all at once. Each one arrives in a different call of LZWCmpEncode. Indeed, in extreme case it might take hundreds of calls to get all the symbols for one key!
+
+So, one of the biggest challenges in this data structure, and one you must figure out with just a few hints from this overview, is how to take one symbol at a time, and traverse the BST incrementally. Here are the hints:
+
+1. At any point, you'll have a partial key, comprised of the symbols thus far seen, that matches at least the prefix of some BST node.
+
+2. You need to track what node in the BST you're currently at, and how much is matched.
+
+3. As each new symbol arrives, you might need to go left or right in the BST. But you might stay with the present node, too.
+
+4. When you reach a null pointer, you can deduce both what key should be used, and what key should be added.
+
+5. There are 4 fields in LZWCmp to track this process. Read their comments.
+
+Holding all the keys in open form is too space intensive
+Especially if LZW codes become long, the obvious choice of representing each code as an allocated block of symbols becomes too slow and memory expensive. Fortunately, we have a very compact way to represent a dictionary of LZW codes – a CodeSet. So, each BST node will hold a code number, and the LZW compression algorithm will include a CodeSet with contents just like those for the expansion algorithm.
+
+So, for instance, node X in the tree might have code number 260 as its data, representing symbol sequence "aa" if expanded, while node Y might have code 259 as its data, representing symbol sequence "bb". Node Y would still be greater than node X in the tree, despite having a smaller code number, because we sort by symbol sequences. But except when actually comparing symbol sequences, we'd hold just the code numbers in the nodes to save space.
+
+As you traverse the BST, you get each symbol sequence from this CodeSet, using the code number in each node. But, be sure to free each sequence once you move past its node, or you'll break the memory usage requirements. At any time, at most one or two codes should be expanded, and the rest are in the CodeSet.
+
+Freelist
+
+The need to allocate and free many tree nodes is the biggest weakness of the BST data structure. malloc and free look like quick operations since they entail only one line of code each, but in fact they can be so time consuming that in extreme cases 50% of your program's execution time may be spent in these functions alone. In our project, we'll fix that by maintaining a freelist of TreeNode structs. (We assume you understand freelists from other lectures at this point.)
+
+Question 6:
+TreeNodes are designed to be in tree structures. How would we make a simple linked list of them? What would we use for a next pointer? (Feel free to repurpose any part of the TreeNode for this; if a TreeNode is on the freelist, we don't care about its contents any more.)
+
+Answer 6:
+We need some sort of a “next” pointer to link nodes on the freelist. Might as well use, either the right or left child pointer for this. We can create a linked list of TreeNodes, then, by linking them through their right pointers.We need some sort of a “next” pointer to link nodes on the freelist. Might as well use, either the right or left child pointer for this. We can create a linked list of TreeNodes, then, by linking them through their right pointers.

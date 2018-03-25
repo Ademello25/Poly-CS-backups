@@ -1,0 +1,16 @@
+-r
+/home/ademello/CPE419/2Project/r001hs
+--data-limit-mb=500
+--stack-stitching
+--follow-child
+--itt-config=frame
+--stackwalk=offline
+--mrte-mode=auto
+--mrte-type=java
+--type=cpu:counters:nostack
+--type=cpu:stack
+--interval=10
+--
+mm
+1408.in.bin
+1408.in.bin

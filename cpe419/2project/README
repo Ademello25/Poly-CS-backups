@@ -1,0 +1,5 @@
+Make command will compile to a executable "mm" with default 28 threads, threads can be changed by changing the num_threads() function in mm.cpp
+
+Program assumed inputs are binary matrix files
+
+./mm <file1> <file2>    dont use any other commands use this specific line

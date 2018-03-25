@@ -1,0 +1,8 @@
+              1      2        3
+    single  10.9     10.89    10.9
+    double  9.85     9.83     9.835
+single/col  12.25   12.216   12.249
+
+I'm not certain why double runs faster than single precision and i
+clearly messed up somewhere with the column major and will come to your office 
+hours on monday to figure out what happened.

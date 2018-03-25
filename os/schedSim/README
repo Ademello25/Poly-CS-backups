@@ -1,0 +1,34 @@
+Alexander DeMello (ademello)
+The usage of this program is
+   python schedSim.py <fileName> -p <Algorithm> -q <Quantum>
+
+This program will default to the FIFO algorithm if there is no -p <Algorithm>
+set at runtime. -q will default to 1 in the event that a time quantum is not
+specified. Out of order parameters will not funciton and likely cause fatal
+errors.
+
+The available algorithms are FIFO, SRJN(NI), and RR(NI). anything else input will 
+probably result in a fatal error.
+
+quantums need to be integers, all I/O is done with integers aside from 
+the averages.
+
+Questions:
+1. SRJN will deliver the same turnaround times to FIFO if the jobs in FIFO happen 
+to show up in SJF order.
+
+2. If the jobs arive in SJF order, and all of the process times are less than 
+the time quantum then SRJN and RR will produce the same response times.
+
+3. As with almost any scheduling scheme you would see response time begin to get 
+pushed further and further out. It's fairly clear to see that if all the jobs are 
+long even the "shortest" job will cause the rest of the processes to wait for a 
+while. I would probably be able to see this in my simulator if i had ogtten SRJN 
+working correctly.
+
+4.If the time quantum becomes too long you just get regular first come first serve
+scheduling. I believe an equation would end up being 
+   (number of jobs) * (average job length)
+for getting the worst case possible response time for a long time quantum RR
+schedulder.
+

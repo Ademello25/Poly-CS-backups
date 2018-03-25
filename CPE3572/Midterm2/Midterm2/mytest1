@@ -1,0 +1,9 @@
+'abc' with 'def' inserted at 'n' is 'abc'
+4 bytes allocated
+
+'abc' with 'def' inserted at 'b' is 'adefc'
+6 bytes allocated
+
+'abcabc' with 'def' inserted at 'a' is 'defbcdefbc'
+11 bytes allocated
+

@@ -1,0 +1,7 @@
+Alexander DeMello (ademello)
+
+   Program should run with just "make", then ./memSim <input File> <Frames>
+   No attempt was made to implement anything other than FIFO page replacement
+   so the command line argument for which algorithm to choose is not implemented
+   This version of memSim only implements a basic TLB/Page table with fifo
+   replacement.

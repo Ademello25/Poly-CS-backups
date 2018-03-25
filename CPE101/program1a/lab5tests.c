@@ -1,0 +1,78 @@
+/*
+ * Assignment: Lab 5
+ * Course: CPE 101
+ * Author: Alexander DeMello
+ */
+#include <stdio.h>
+#define PI 3.14159265
+
+double boxVolume(double l, double w, double h);
+double boxWeight(double l, double w, double h, double th, double d);
+double ballVolume(double r);
+double ballWeight(double r, double th, double d);
+int ballsFit(double r, double l, double w, double h, double th);
+int approxEq(double a, double b, double epsilon);
+
+int main()
+{
+   double expect, result;
+   int ballsexpect, ballsresult;
+
+
+   expect = 140.556;  
+   result = boxVolume(5.1, 5.2, 5.3);
+   
+   if(!approxEq(expect, result, 0.000001))
+   {
+      printf("Error boxVolume: Expected %f, found %f\n", expect, result);
+   }
+
+   
+   expect = 100.36800;
+   result = boxWeight(4.1, 5.1, 6.1, .5, 1.6);
+
+   if(!approxEq(expect, result, 0.000001))
+   {
+     printf("Error boxWeight: Expected %f, found %f\n", expect, result);
+   }
+
+
+   expect = 381.703507;
+   result = ballVolume(4.5);
+
+   if(!approxEq(expect, result, 0.000001))
+   {
+     printf("Error ballVolume: Expected %f, found %f\n", expect, result);
+   }
+  
+
+   expect = 303.8942157;
+   result = ballWeight(4.5, 1.1, 1.4);   
+
+   if(!approxEq(expect, result, 0.000001))
+   {
+     printf("Error ballWeight: Expected %f, found %f\n", expect, result);
+   }
+   
+
+  ballsexpect = 35937;
+  ballsresult = ballsFit(1.5, 100.1, 100.2, 100.3, .5);
+ 
+    if(!approxEq(ballsexpect, ballsresult, 1))
+  {
+     printf("Error ballsFit: Expected %d, found %d\n", ballsexpect, ballsresult);
+  } 
+  return 0;
+}
+
+int approxEq(double a, double b, double epsilon)
+{
+   if((a - b) > epsilon || (b-a) > epsilon)
+      {
+         return 0;
+      } 
+      else
+      {
+	 return 2;
+      }
+}

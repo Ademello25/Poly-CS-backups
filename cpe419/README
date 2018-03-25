@@ -1,0 +1,11 @@
+After unpacking a version of the program, navigate to the build folder. 
+
+   make -j8
+
+will compile. 
+
+To run the program run
+
+   ./Lab09 ../resources ../resources/<Test File you would like to run>
+
+The command line will print the FPS count every second.

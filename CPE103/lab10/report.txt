@@ -1,0 +1,27 @@
+        Bubble Sort 1     2,500 elements     (observed):        107ms
+                          5,000 elements     (observed):        425ms
+                         10,000 elements     (observed):       1750ms
+                         20,000 elements     (observed):       7450ms
+                        500,000 elements   (calculated):    4656250ms
+                      5,000,000 elements:  (calculated):  465625000ms
+
+        Bubble Sort 2     2,500 elements     (observed):    79ms
+                          5,000 elements     (observed):    296ms
+                         10,000 elements     (observed):    1250ms
+                         20,000 elements     (observed):    6154ms
+                        500,000 elements   (calculated):    3846250ms
+                      5,000,000 elements:  (calculated):  384625000ms
+
+        Bubble Sort 3     2,500 elements     (observed):    74ms
+                          5,000 elements     (observed):    288ms
+                         10,000 elements     (observed):    1220ms
+                         20,000 elements     (observed):    5254ms
+                        500,000 elements   (calculated):    3283750ms
+                      5,000,000 elements:  (calculated):  328375000ms
+
+        Insertion Sort    2,500 elements     (observed):    30ms
+                          5,000 elements     (observed):    116ms
+                         10,000 elements     (observed):    512ms
+                         20,000 elements     (observed):    2155ms
+                        500,000 elements   (calculated):    1346875ms
+                      5,000,000 elements:  (calculated):  134687500ms 

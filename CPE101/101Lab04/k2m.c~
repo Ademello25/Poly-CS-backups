@@ -1,0 +1,23 @@
+/*
+ * Converts distances in kilometers to miles
+ */
+#include <stdio.h>             /* printf, scanf definitions */
+double kilometersToMiles(double kms);  
+
+int main()
+{
+   double kms,      /* input - distance in kilometers */
+    miles;              /* output - distance in miles */
+
+   /* Get the distance in kilometers */
+   printf("Enter the distance in kilometers> ");
+   scanf("%lf", &kms);
+
+   /* Convert the distance to miles */
+   miles = kilometersToMiles(kms);
+
+   /* Display the distance in kilometers */
+   printf("That equals %f miles.\n", miles);
+
+   return (0);
+}
